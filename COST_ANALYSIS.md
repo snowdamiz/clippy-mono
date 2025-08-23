@@ -6,14 +6,14 @@
 
 ## 📜 Table of Contents
 
-1. [📋 Executive Summary](#📋-executive-summary)
-2. [📊 Part 1: Per-User Cost Breakdown](#📊-part-1-per-user-cost-breakdown)
-3. [💰 Cost Summary: Single User](#💰-cost-summary-single-user)
-4. [📈 Part 2: Enterprise Scaling Analysis](#📈-part-2-enterprise-scaling-analysis)
-5. [🎯 Pricing Strategy](#🎯-pricing-strategy-recommendations)
-6. [🏆 Competitive Analysis](#competitive-analysis)
-7. [💵 Detailed Scaling Costs](#💵-detailed-scaling-cost-analysis)
-8. [🚀 Final Conclusion](#🚀-final-conclusion)
+1. [Executive Summary](#-executive-summary)
+2. [Part 1: Per-User Cost Breakdown](#-part-1-per-user-cost-breakdown)
+3. [Cost Summary: Single User](#-cost-summary-single-user)
+4. [Part 2: Enterprise Scaling Analysis](#-part-2-enterprise-scaling-analysis)
+5. [Pricing Strategy](#-pricing-strategy-recommendations)
+6. [Competitive Analysis](#-competitive-analysis)
+7. [Detailed Scaling Costs](#-detailed-scaling-cost-analysis)
+8. [Final Conclusion](#-final-conclusion)
 
 ---
 
