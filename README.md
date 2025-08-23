@@ -1,135 +1,345 @@
-# Turborepo starter
+# Clippy - Automatic Stream Clipping Platform
 
-This Turborepo starter is maintained by the Turborepo core team.
+## 🎯 Project Overview
 
-## Using this example
+Clippy is a real-time stream clipping tool that processes live streams as they happen, automatically identifying and creating highlight clips in real-time. Using smart tab recording with automatic focus detection, the system continuously analyzes the stream, generating clips of noteworthy moments on-the-fly, ready for various social media platforms.
 
-Run the following command:
+## 🚀 MVP Features
 
-```sh
-npx create-turbo@latest
-```
+- **Smart Tab Recording**: Capture streaming content with automatic video region detection
+- **Real-Time Processing**: Process stream chunks as they arrive (10-30 second windows)
+- **Continuous Transcription**: Rolling transcription using Whisper AI on audio chunks
+- **Live Clip Detection**: AI continuously analyzes recent transcript segments for highlights
+- **Instant Clip Generation**: Automatically create clips when highlights are detected
+- **Dual Buffer System**:
+  - 5-minute rolling buffer for immediate clip generation
+  - 48-hour raw storage for extended context and retroactive clipping
+- **Context-Aware AI**: References historical conversations for better clip detection
+- **Smart Clip Generation**: Include context from previous streams when relevant
+- **Multi-Platform Export**: Pre-formatted clips ready for social media platforms
+- **Real-Time Notifications**: Alert users when new clips are generated
+- **Auto-Cleanup**: Automatic deletion of raw streams after 48 hours
 
-## What's inside?
+## 🏗️ System Architecture (Optimized)
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
+### Edge-First Architecture
 
 ```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+Chrome Extension (Vue 3 + WASM Processing)
+        ↓
+   Edge Functions (Cloudflare Workers + Supabase)
+        ↓
+   Services:
+  - Browser: Whisper WASM, FFmpeg WASM, Initial Processing
+  - Edge: Orchestration, AI Routing, Storage Management  
+  - Groq API: Fast Transcription & Llama 3.1 Analysis
+  - Supabase: Auth, Database, Realtime
+        ↓
+   Cloudflare R2 (Storage) + PostgreSQL
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+### Optimized Edge-First Processing Flow
 
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+1. User activates recording on tab → Start capturing
+2. Browser Processing (FREE!):
+   a. Capture tab stream via chrome.tabCapture API
+   b. Track video element position for smart cropping
+   c. Compress with WebCodecs API
+   d. Extract audio in browser
+   e. Run Whisper.cpp WASM (transcription)
+   f. Store in IndexedDB (5-min buffer)
+   
+3. Smart Upload (90% bandwidth saved):
+   - Compressed keyframes + audio only
+   - Transcript JSON (tiny)
+   - Skip if no activity detected
+   
+4. Edge Function Processing (Cloudflare/Supabase):
+   a. Receive compressed data
+   b. Store in R2 (no egress fees!)
+   c. Quick keyword filtering (free)
+   d. If potential highlight:
+      - Call Groq API (Llama 3.1)
+      - Query 48hr context from DB
+      - GPT-4 only if complex
+   
+5. Clip Generation:
+   - Pull from browser buffer if <5 min
+   - Pull from R2 if older
+   - Generate clip with context
+   - Export to all platforms
+   
+6. Storage Management:
+   - Browser: 5-min rolling buffer
+   - R2: 48-hour compressed archive  
+   - Auto-cleanup after 48 hours
 ```
 
-### Develop
-
-To develop all apps and packages, run the following command:
+## 📁 Project Structure
 
 ```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+clippy-mono/
+├── apps/
+│   └── chrome-extension/      # Vue 3 Chrome extension
+│
+├── services/
+│   ├── api-gateway/          # Request routing & load balancing
+│   ├── auth-service/         # User authentication & JWT
+│   ├── stream-service/       # Handle stream chunks & storage
+│   ├── audio-service/        # Audio extraction & transcription
+│   ├── video-service/        # Video processing & manipulation
+│   ├── clip-service/         # AI analysis & clip generation
+│   └── export-service/       # Platform-specific formatting
+│
+├── packages/
+│   ├── types/                # Shared TypeScript types
+│   ├── config/               # Shared configuration
+│   └── database/             # Database schemas & migrations
+│
+└── infrastructure/
+    ├── docker/               # Docker configurations
+    └── scripts/              # Deployment scripts
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
+## 🛠️ Technology Stack
 
+### Chrome Extension
+- **Framework**: Vue 3 + TypeScript
+- **Recording**: chrome.tabCapture API
+- **Processing**: WebAssembly (Whisper.cpp, FFmpeg with smart cropping)
+- **Build Tool**: Vite
+- **Storage**: IndexedDB for 5-min buffer
+- **APIs**: MediaRecorder, WebCodecs, Chrome Extension APIs
+
+### Edge Computing
+- **Functions**: Cloudflare Workers + Supabase Edge Functions
+- **Runtime**: Deno/V8 Isolates (0ms cold start)
+- **Processing**: Rust compiled to WASM
+- **Features**: Auto-scaling, global distribution
+
+### AI/ML (Tiered Approach)
+- **Browser**: Whisper.cpp WASM (free)
+- **Primary**: Groq API (Whisper + Llama 3.1)
+- **Fallback**: GPT-4 for complex context only
+- **Embeddings**: Local ONNX models
+
+### Data Layer
+- **Database & Auth**: Supabase (all-in-one)
+  - PostgreSQL with built-in caching
+  - Authentication & JWT
+  - Realtime subscriptions
+  - Edge Functions
+- **Storage**: Cloudflare R2 (no egress fees!)
+- **Buffer**: Browser IndexedDB + R2
+- **CDN**: Cloudflare (unlimited bandwidth free)
+
+## 📊 Service Details
+
+### Auth Service
+- User registration/login
+- JWT token generation
+- Session management
+
+### Stream Service (Dual Buffer System)
+- Receive video chunks via WebSocket (10-30 sec intervals)
+- Dual storage management:
+  - Hot buffer: 5-minute rolling buffer in Redis for immediate access
+  - Cold storage: 48-hour archive in S3/Supabase for context
+- Coordinate chunk processing pipeline
+- Manage automatic cleanup (48-hour expiry)
+- Handle chunk retrieval from both storage tiers
+
+### Audio Service (Continuous Transcription)
+- Extract audio from video chunks in real-time
+- Process with Whisper AI (streaming mode)
+- Return timestamped transcript segments:
+```json
+{
+  "chunk_id": "chunk_123",
+  "start_time": 300.0,  // Stream time in seconds
+  "transcript": [
+    {
+      "text": "This is amazing!",
+      "start": 310.5,
+      "end": 311.8,
+      "confidence": 0.98
+    }
+  ]
+}
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+### Video Service (Buffer Management)
+- Maintain video buffer for clip generation
+- Quick clip extraction from buffer
+- Real-time quality optimization
+- Thumbnail generation on-the-fly
+
+### Clip Service (Context-Aware Detection)
+- Dual analysis mode:
+  - Immediate: Sliding window (last 2-3 minutes)
+  - Historical: Query last 48 hours for context
+- Enhanced AI detection with full context:
+  - Immediate triggers: excitement, key phrases, sentiment
+  - Contextual triggers: callbacks, story arcs, predictions
+  - Cross-stream references: "Remember yesterday..."
+- Smart clip generation:
+  - Include relevant flashbacks from archives
+  - Automatic context overlay for callbacks
+  - Multi-segment clips for story completion
+- Retroactive clipping when context emerges later
+
+### Export Service
+- Platform-specific formatting:
+  - YouTube Shorts (9:16, <60s)
+  - TikTok (9:16, <3min)
+  - Twitter/X (various ratios, <2:20)
+  - Instagram Reels (9:16, <90s)
+- Add captions/subtitles
+- Apply platform requirements
+
+## 🚀 Getting Started
+
+### Prerequisites
+```bash
+Node.js 20+
+Docker & Docker Compose
+Supabase Account (free tier works)
+Python 3.10+ (for AI services)
 ```
 
-### Remote Caching
+### Installation
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+#### 1. Setup Supabase
+```bash
+# Create a Supabase project at https://supabase.com
+# Follow instructions in SUPABASE_SETUP.md
+# Copy your API keys
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+#### 2. Setup Project
+```bash
+# Clone repository
+git clone https://github.com/yourusername/clippy-mono.git
+cd clippy-mono
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+# Install dependencies
+npm install
 
+# Create .env file
+cp .env.example .env
+# Add your Supabase credentials to .env
+
+# Start local infrastructure (Redis, RabbitMQ, MinIO)
+docker-compose up -d
+
+# Initialize Supabase database
+# Run the SQL scripts from SUPABASE_SETUP.md in Supabase SQL Editor
+
+# Start development
+npm run dev
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+### Chrome Extension Development
+```bash
+cd apps/chrome-extension
+npm install
+npm run dev
+
+# Load extension in Chrome:
+# 1. Open chrome://extensions/
+# 2. Enable Developer mode
+# 3. Click "Load unpacked"
+# 4. Select dist/ directory
 ```
 
-## Useful Links
+## 🔄 Development Workflow
 
-Learn more about the power of Turborepo:
+### Adding a New Microservice
+```bash
+cd services
+mkdir new-service
+cd new-service
+npm init -y
+npm install express typescript @types/node
+```
 
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+### Running Services
+```bash
+# All services
+npm run dev
+
+# Specific service
+npm run dev --filter=auth-service
+
+# Chrome extension
+npm run dev --filter=chrome-extension
+```
+
+## 📝 API Endpoints
+
+### Authentication
+```
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/refresh
+```
+
+### Streaming
+```
+POST /api/stream/init
+WS   /api/stream/upload
+POST /api/stream/complete
+```
+
+### Clips
+```
+GET  /api/clips
+GET  /api/clips/:id
+POST /api/clips/generate
+GET  /api/clips/:id/export/:platform
+```
+
+## 🎯 MVP Milestones
+
+### Phase 1: Real-Time Streaming (Week 1-2)
+- [ ] Chrome extension with Vue 3
+- [ ] Tab capture implementation
+- [ ] WebSocket streaming of chunks
+- [ ] Rolling buffer implementation
+
+### Phase 2: Dual Storage & Processing (Week 3-4)
+- [ ] Real-time audio extraction
+- [ ] Streaming Whisper AI integration
+- [ ] Dual buffer implementation (5min + 48hr)
+- [ ] Continuous transcript generation
+- [ ] Auto-cleanup scheduler
+
+### Phase 3: Context-Aware AI (Week 5-6)
+- [ ] Historical context querying
+- [ ] Enhanced AI detection with context
+- [ ] Retroactive clip generation
+- [ ] Cross-stream reference detection
+- [ ] Smart flashback inclusion
+
+### Phase 4: Export & Notifications (Week 7-8)
+- [ ] Auto-format for platforms
+- [ ] Real-time notifications in extension
+- [ ] Clip dashboard in extension
+- [ ] Download & share functionality
+
+## 🔮 Future Enhancements
+- Web dashboard for clip management
+- Custom AI models for specific games/streamers
+- Automated posting to social media
+- Multi-stream support (multiple tabs)
+- Team/organization accounts
+- Advanced editing tools
+- Community marketplace for AI detection models
+- Twitch/YouTube chat integration for better context
+- Viewer reaction tracking (chat velocity, emotes)
+- Collaborative clipping (multiple users, same stream)
+
+## 📄 License
+
+MIT License - see [LICENSE](./LICENSE) file for details.

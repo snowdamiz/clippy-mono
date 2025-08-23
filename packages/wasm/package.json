@@ -1,0 +1,25 @@
+{
+  "name": "@clippy/wasm",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "npm run build:ffmpeg && npm run build:whisper",
+    "build:ffmpeg": "node scripts/build-ffmpeg.js",
+    "build:whisper": "node scripts/build-whisper.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --fix",
+    "test": "vitest",
+    "clean": "rimraf lib"
+  },
+  "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.0",
+    "@ffmpeg/util": "^0.12.0",
+    "comlink": "^4.4.1"
+  },
+  "devDependencies": {
+    "vitest": "^1.0.0"
+  }
+}

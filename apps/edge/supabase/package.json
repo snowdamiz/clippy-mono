@@ -1,0 +1,17 @@
+{
+  "name": "@clippy/supabase-edge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "supabase functions serve",
+    "deploy": "supabase functions deploy",
+    "typecheck": "deno check **/*.ts",
+    "lint": "deno lint",
+    "fmt": "deno fmt",
+    "test": "deno test"
+  },
+  "dependencies": {
+    "@clippy/shared": "workspace:*"
+  }
+}
