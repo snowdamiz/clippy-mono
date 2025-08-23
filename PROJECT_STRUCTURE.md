@@ -32,12 +32,48 @@ clippy-mono/
 │       └── supabase/        # Supabase Edge Functions
 │           └── functions/   # Function implementations
 │
+├── services/                 # Backend services
+│   ├── api-gateway/         # API Gateway with load balancing
+│   │   ├── src/
+│   │   │   ├── routes/      # API route definitions
+│   │   │   ├── middleware/  # Auth, rate limiting, etc.
+│   │   │   └── utils/       # Gateway utilities
+│   │   └── Dockerfile
+│   │
+│   ├── queue-manager/       # BullMQ queue orchestration
+│   │   ├── src/
+│   │   │   ├── queues/      # Queue definitions
+│   │   │   ├── jobs/        # Job schemas and types
+│   │   │   └── monitoring/  # Bull Board setup
+│   │   └── Dockerfile
+│   │
+│   └── workers/             # Distributed worker pools
+│       ├── video-worker/    # FFmpeg processing
+│       ├── transcription/   # Whisper AI processing  
+│       ├── ai-analysis/     # Groq/GPT-4 analysis
+│       ├── clip-generation/ # Clip assembly
+│       └── export/          # Platform formatting
+│
 ├── packages/                 # Shared packages
 │   ├── shared/              # Shared types and utilities
 │   │   └── src/
 │   │       ├── types/       # TypeScript type definitions
 │   │       ├── utils/       # Shared utilities
 │   │       └── constants/   # Shared constants
+│   │
+│   ├── queue/               # Queue abstractions
+│   │   ├── src/
+│   │   │   ├── client/      # BullMQ client wrapper
+│   │   │   ├── jobs/        # Job interfaces
+│   │   │   └── workers/     # Worker base classes
+│   │   └── package.json
+│   │
+│   ├── cache/               # Caching strategies
+│   │   ├── src/
+│   │   │   ├── redis/       # Redis cache layer
+│   │   │   ├── cdn/         # CDN cache helpers
+│   │   │   └── strategies/  # Cache patterns
+│   │   └── package.json
 │   │
 │   ├── wasm/                # WebAssembly modules
 │   │   ├── src/             # WASM wrapper code
@@ -54,6 +90,17 @@ clippy-mono/
 ├── tests/                    # Test suites
 │   ├── unit/                # Unit tests
 │   └── e2e/                 # End-to-end tests
+│
+├── infrastructure/           # Infrastructure configuration
+│   ├── docker/              # Docker configurations
+│   │   ├── docker-compose.yml       # Local development
+│   │   ├── docker-compose.prod.yml  # Production setup
+│   │   └── redis-cluster/   # Redis cluster config
+│   ├── k8s/                 # Kubernetes manifests
+│   │   ├── deployments/     # Service deployments
+│   │   ├── services/        # K8s services
+│   │   └── configmaps/      # Configuration
+│   └── terraform/           # Infrastructure as code
 │
 ├── scripts/                  # Build and utility scripts
 ├── config/                   # Configuration files

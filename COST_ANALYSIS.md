@@ -2,12 +2,26 @@
 
 ## Executive Summary
 
-This document provides a comprehensive cost analysis for the Clippy platform, from initial launch through 1 million users. Our browser-first architecture and strategic technology choices enable exceptional unit economics at all scales.
+This document provides a comprehensive cost analysis for the Clippy platform, from initial launch through 1 million users. **CRITICAL UPDATE: Queue infrastructure is mandatory for scaling beyond 100 users. Without it, the system will fail catastrophically.**
+
+### ⚠️ Queue System Impact on Costs
+
+**Without Queue System (Current):**
+- 100 users: ~$500/month (inefficient but works)
+- 1,000 users: ~$8,000/month (cascading failures)
+- 10,000 users: ~$150,000/month (COMPLETE SYSTEM FAILURE)
+
+**With Queue System (Required):**
+- 100 users: ~$200/month (60% reduction)
+- 1,000 users: ~$2,000/month (75% reduction)  
+- 10,000 users: ~$15,000/month (90% reduction, actually scales)
 
 ### Base Scenario
 Typical user: 4 hours of content per day, 5 days = 20 hours total
 
-### Architecture Optimizations
+### Architecture Optimizations (WITH QUEUE SYSTEM)
+- **BullMQ + Redis Queue** → Prevents cascading failures
+- **Worker Pools** → Horizontal scaling capability
 - Browser-based WASM processing → 90% compute reduction
 - Selective upload with activity detection → 70% bandwidth savings
 - Tiered AI routing → 80% AI cost reduction
@@ -138,9 +152,21 @@ Cost: $0 (within free tier)
 - 5-minute rolling buffer: Client-side
 - Cost: $0.00
 
-#### Job Queue
-- Supabase Queue: Built-in with Edge Functions
-- Cost: $0.00
+#### Job Queue (CRITICAL INFRASTRUCTURE)
+- **Development (< 100 users):**
+  - Redis single instance: $25/month
+  - BullMQ: Open source (free)
+  - Cost: $25/month
+
+- **Scale (1,000 users):**
+  - Redis cluster (3 nodes): $150/month
+  - Queue monitoring: $50/month
+  - Cost: $200/month
+
+- **Enterprise (10,000 users):**
+  - Redis cluster (5 nodes): $500/month
+  - Advanced monitoring: $200/month
+  - Cost: $700/month
 
 ### Marketing Website Hosting
 
@@ -284,7 +310,7 @@ Cost: $0 (within free tier)
 
 ## 💵 Detailed Scaling Cost Analysis
 
-### Scale: 10,000 Users
+### Scale: 10,000 Users (WITH QUEUE SYSTEM)
 
 #### User Distribution
 - Free tier: 6,000 users (60%)
@@ -292,45 +318,71 @@ Cost: $0 (within free tier)
 - Business tier: 500 users (5%) × $29.99 = $14,995/month
 - Total Monthly Revenue: $49,960
 
-#### Infrastructure Costs
+#### Infrastructure Costs (Queue-Based Architecture)
+
+**Queue Infrastructure (REQUIRED)**
+- Redis cluster (5 nodes, 32GB): $500/month
+- BullMQ monitoring (Bull Board): $100/month
+- Worker orchestration: $200/month
+- Total Queue: $800/month
+
+**Worker Pool Infrastructure**
+- Video workers (10 instances): $1,000/month
+- Transcription workers (20 instances): $2,000/month
+- AI workers (5 instances): $500/month
+- Clip workers (10 instances): $1,000/month
+- Export workers (5 instances): $500/month
+- Total Workers: $5,000/month
+
+**Load Balancing & API Gateway**
+- HAProxy/NGINX (2 instances): $200/month
+- API Gateway (Kong): $300/month
+- Total: $500/month
 
 Storage (Cloudflare R2)
 - Video storage (48hr): 11.2 TB
 - Permanent clips: 20 TB
 - Total: 31.2 TB × $0.015/GB = $468/month
 
-Database (Supabase Pro)
+Database (Supabase Team + Pooling)
 - Database size: ~50 GB
-- Supabase Pro plan: $25/month
-- Additional compute units: $150/month
+- Supabase Team plan: $599/month
+- PgBouncer pooling: $100/month
+- Additional compute: $300/month
+- Total: $999/month
 
-AI Processing (Groq API)
-- Pro/Business users: 4,000 × 60 hours/month × $0.05
-- With volume discount (-20%): $9,600/month
+AI Processing (With Queue Optimization)
+- Groq API (with batching): $6,000/month
+- OpenAI fallback: $500/month
+- Total: $6,500/month (35% saved via queuing)
 
 Edge Computing (Cloudflare Workers)
 - 10M requests/month
-- Workers Paid plan: $5/month base + $0.50/million requests
-- Total: $10/month
+- Workers Paid plan: $100/month
 
 Website Hosting (Vercel Pro)
 - 100,000 visitors/month
 - Bandwidth: ~500 GB
 - Vercel Pro: $20/month
 
-Support Infrastructure
-- Zendesk/Intercom: $89/month
-- Monitoring (Sentry, Datadog): $99/month
-- Email service (SendGrid): $89/month
+Monitoring & Support
+- Prometheus/Grafana: $200/month
+- Sentry: $99/month
+- DataDog: $500/month
+- Support tools: $200/month
 
 Team Costs
-- Customer support (2 part-time): $3,000/month
-- DevOps (1 part-time): $2,500/month
+- Customer support (5 FTE): $10,000/month
+- DevOps/SRE (2 FTE): $15,000/month
+- On-call rotation: $2,000/month
 
-#### Financial Summary
-- Total Monthly Costs: $16,050
-- Monthly Profit: $33,910
-- Profit Margin: 67.9%
+#### Financial Summary (With Queue System)
+- Infrastructure: $15,387/month
+- Team: $27,000/month
+- Total Monthly Costs: $42,387/month
+- Monthly Profit: $7,573/month
+- Profit Margin: 15.2%
+- **Cost per user: $4.24** (vs $150 without queues)
 
 ### Scale: 100,000 Users
 

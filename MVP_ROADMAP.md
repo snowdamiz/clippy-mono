@@ -2,7 +2,34 @@
 
 ## 📋 Complete Task List for Clippy MVP
 
-### Phase 0: Foundation Setup (Days 1-3)
+### Phase 0: Foundation Setup (Days 1-4)
+
+#### Queue Infrastructure Setup (CRITICAL - NEW)
+- [ ] Set up Redis cluster
+  - [ ] Install Redis locally for development
+  - [ ] Configure Redis cluster with 3 nodes minimum
+  - [ ] Set up Redis Sentinel for high availability
+  - [ ] Configure persistence and backup strategy
+  - [ ] Test cluster failover scenarios
+- [ ] Implement BullMQ queue system
+  - [ ] Install BullMQ and dependencies
+  - [ ] Create queue manager service
+  - [ ] Define job types and schemas
+  - [ ] Set up priority levels (CRITICAL, HIGH, NORMAL, LOW)
+  - [ ] Configure retry policies and dead letter queues
+  - [ ] Implement job monitoring dashboard (Bull Board)
+- [ ] Create worker architecture
+  - [ ] Design worker pool structure
+  - [ ] Implement base worker class
+  - [ ] Create worker scaling logic
+  - [ ] Add health checks and heartbeats
+  - [ ] Set up worker deployment scripts
+- [ ] Set up monitoring infrastructure
+  - [ ] Install Prometheus for metrics
+  - [ ] Configure Grafana dashboards
+  - [ ] Set up alerts for queue depth
+  - [ ] Add performance monitoring
+  - [ ] Create SLA tracking
 
 #### Infrastructure & Accounts
 - [ ] Create Supabase account and project
@@ -137,7 +164,61 @@
 - [ ] Add Groq API keys
 - [ ] Set up development vs production configs
 
-### Phase 2: Chrome Extension Core (Days 7-12)
+### Phase 1.5: Queue System Implementation (Days 7-9) [NEW CRITICAL PHASE]
+
+#### Core Queue Infrastructure
+- [ ] Implement video processing queue
+  - [ ] Create video-processing queue
+  - [ ] Define chunk processing jobs
+  - [ ] Implement worker pool (10-20 workers)
+  - [ ] Add progress tracking
+  - [ ] Set up result caching
+- [ ] Create transcription queue
+  - [ ] Set up transcription queue
+  - [ ] Implement Whisper job processing
+  - [ ] Configure batch processing
+  - [ ] Add GPU worker support
+  - [ ] Create fallback mechanisms
+- [ ] Build AI analysis queue
+  - [ ] Create AI analysis queue with rate limiting
+  - [ ] Implement Groq API job handler
+  - [ ] Add GPT-4 fallback queue
+  - [ ] Configure request batching
+  - [ ] Set up cost tracking
+- [ ] Implement clip generation queue
+  - [ ] Create clip assembly queue
+  - [ ] Define clip generation jobs
+  - [ ] Add context fetching
+  - [ ] Implement parallel processing
+  - [ ] Set up result storage
+- [ ] Create export queue
+  - [ ] Build platform-specific export queue
+  - [ ] Implement format conversion jobs
+  - [ ] Add CDN upload integration
+  - [ ] Configure batch exports
+  - [ ] Set up delivery notifications
+
+#### Load Balancing & API Gateway
+- [ ] Set up API Gateway
+  - [ ] Install Kong or similar gateway
+  - [ ] Configure rate limiting per tier
+  - [ ] Implement authentication middleware
+  - [ ] Add request routing rules
+  - [ ] Set up circuit breakers
+- [ ] Implement load balancer
+  - [ ] Configure HAProxy or NGINX
+  - [ ] Set up health checks
+  - [ ] Implement sticky sessions
+  - [ ] Add SSL termination
+  - [ ] Configure auto-scaling triggers
+- [ ] Create connection pooling
+  - [ ] Database connection pool (PgBouncer)
+  - [ ] Redis connection pooling
+  - [ ] WebSocket connection management
+  - [ ] API client pooling
+  - [ ] Monitor pool utilization
+
+### Phase 2: Chrome Extension Core (Days 10-15)
 
 #### Extension Setup
 - [ ] Create Vue 3 project with Vite
@@ -439,7 +520,15 @@
   - [ ] Configure edge locations
   - [ ] Set up custom domain
 
-### Phase 5: Edge Functions (Days 23-27)
+### Phase 5: Edge Functions with Queue Integration (Days 23-27)
+
+#### Queue-Integrated Edge Functions
+- [ ] Modify edge functions for queue architecture
+  - [ ] Replace direct processing with job creation
+  - [ ] Implement job status tracking
+  - [ ] Add WebSocket updates for job progress
+  - [ ] Create job result caching
+  - [ ] Set up job cleanup routines
 
 #### Cloudflare Workers
 - [ ] Set up Cloudflare Workers project
@@ -1121,7 +1210,27 @@
   - [ ] Show illustrations
   - [ ] Guide next steps
 
-### Phase 10: Testing & Optimization (Days 53-58)
+### Phase 10: Testing & Optimization for Scale (Days 53-60)
+
+#### Scalability Testing
+- [ ] Load test queue system
+  - [ ] Test with 100 concurrent users
+  - [ ] Scale to 1,000 users
+  - [ ] Verify 10,000 user capacity
+  - [ ] Measure queue throughput
+  - [ ] Test worker auto-scaling
+- [ ] Stress test infrastructure
+  - [ ] Database connection limits
+  - [ ] Redis cluster performance
+  - [ ] API gateway capacity
+  - [ ] Worker pool efficiency
+  - [ ] Storage I/O limits
+- [ ] Cost optimization testing
+  - [ ] Measure cost per user
+  - [ ] Optimize API usage
+  - [ ] Test caching effectiveness
+  - [ ] Verify auto-cleanup
+  - [ ] Monitor resource usage
 
 #### Testing
 - [ ] Write unit tests for core functions
@@ -1251,7 +1360,27 @@
   - [ ] Compare CTA variations
   - [ ] Optimize conversion funnel
 
-### Phase 12: Deployment & Launch Prep (Days 63-65)
+### Phase 12: Production Deployment & Scaling (Days 63-68)
+
+#### Production Infrastructure
+- [ ] Deploy Redis cluster to production
+  - [ ] Set up Redis on AWS/GCP
+  - [ ] Configure replication
+  - [ ] Enable persistence
+  - [ ] Set up monitoring
+  - [ ] Test failover
+- [ ] Deploy worker infrastructure
+  - [ ] containerize all workers
+  - [ ] Set up Kubernetes cluster
+  - [ ] Configure auto-scaling policies
+  - [ ] Deploy worker pools
+  - [ ] Verify horizontal scaling
+- [ ] Configure production queues
+  - [ ] Set production rate limits
+  - [ ] Configure dead letter queues
+  - [ ] Set up job retention policies
+  - [ ] Enable job metrics
+  - [ ] Test queue recovery
 
 #### Deployment Setup
 - [ ] Configure Cloudflare Workers deployment
@@ -1284,13 +1413,15 @@
 
 These must be completed in order:
 
-1. **Supabase Setup** → Everything depends on auth/database
-2. **Chrome Extension Core** → Can't capture without extension
-3. **Stream Capture** → Need video before processing
-4. **Browser WASM** → Core processing capability
-5. **Edge Functions** → Required for API communication
-6. **AI Integration** → Needed for clip detection
-7. **Clip Generation** → Core feature completion
+1. **Queue Infrastructure** → CRITICAL: System fails without queues
+2. **Supabase Setup** → Everything depends on auth/database
+3. **Redis Cluster & BullMQ** → Required for all processing
+4. **Chrome Extension Core** → Can't capture without extension
+5. **Worker Architecture** → Needed for scalable processing
+6. **Stream Capture** → Need video before processing
+7. **Edge Functions** → Required for API communication
+8. **AI Integration** → Needed for clip detection
+9. **Clip Generation** → Core feature completion
 
 ## 🚨 High-Risk Areas
 
@@ -1305,15 +1436,22 @@ Areas requiring special attention:
 
 ## 📊 Success Metrics
 
-Track these to ensure MVP quality:
+Track these to ensure MVP quality and scalability:
 
 - [ ] Can capture streaming content from supported sites
 - [ ] Transcription accuracy >90%
 - [ ] Clip detection rate >80%
 - [ ] Processing latency <5 seconds
-- [ ] Storage cost <$5/user/month
+- [ ] Storage cost <$5/user/month (at 1k users)
 - [ ] Extension size <10MB
 - [ ] Load time <2 seconds
+- [ ] Queue processing throughput >1000 jobs/minute
+- [ ] Support 100 concurrent users (MVP)
+- [ ] Scale to 1,000 users without degradation
+- [ ] Architecture supports 10,000 users
+- [ ] Worker auto-scaling functional
+- [ ] Zero data loss under load
+- [ ] 99.9% uptime target
 
 ## 🔄 Daily Checklist
 
@@ -1329,10 +1467,13 @@ For consistent progress:
 
 ## 📅 Time Estimates
 
-- **Total Duration**: 60 days (2 months)
+- **Total Duration**: 68 days (~2.5 months) - Extended for queue infrastructure
 - **Daily Commitment**: 6-8 hours
-- **Total Hours**: ~400 hours
-- **Lines of Code**: ~15,000-20,000
+- **Total Hours**: ~450-500 hours
+- **Lines of Code**: ~20,000-25,000
+- **Additional Infrastructure Setup**: ~40 hours
+- **Queue System Implementation**: ~60 hours
+- **Scaling & Optimization**: ~50 hours
 
 ## 🎉 MVP Complete Checklist
 

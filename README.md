@@ -20,60 +20,70 @@ Clippy is a real-time stream clipping tool that processes live streams as they h
 - **Real-Time Notifications**: Alert users when new clips are generated
 - **Auto-Cleanup**: Automatic deletion of raw streams after 48 hours
 
-## 🏗️ System Architecture (Optimized)
+## 🏗️ System Architecture (Queue-Based Scalable)
 
-### Edge-First Architecture
-
-```
-Chrome Extension (Vue 3 + WASM Processing)
-        ↓
-   Edge Functions (Cloudflare Workers + Supabase)
-        ↓
-   Services:
-  - Browser: Whisper WASM, FFmpeg WASM, Initial Processing
-  - Edge: Orchestration, AI Routing, Storage Management  
-  - Groq API: Fast Transcription & Llama 3.1 Analysis
-  - Supabase: Auth, Database, Realtime
-        ↓
-   Cloudflare R2 (Storage) + PostgreSQL
-```
-
-### Optimized Edge-First Processing Flow
+### Scalable Queue-First Architecture
 
 ```
-1. User activates recording on tab → Start capturing
-2. Browser Processing (FREE!):
+Chrome Extension (Vue 3 + Capture Only)
+        ↓
+   API Gateway (Load Balanced)
+        ↓
+   Queue System (BullMQ + Redis Cluster)
+        ↓
+   Worker Pool Architecture:
+  - Video Workers: Chunk processing & compression
+  - Transcription Workers: Whisper AI processing
+  - AI Workers: Groq/GPT-4 analysis with rate limiting
+  - Clip Workers: Generation and assembly
+  - Export Workers: Platform-specific formatting
+        ↓
+   Storage Tiers:
+  - Hot: Redis (5-min buffer)
+  - Warm: CDN (recent clips)
+  - Cold: Cloudflare R2 (48-hour archive)
+        ↓
+   Database: Supabase (PostgreSQL cluster)
+```
+
+### Scalable Queue-Based Processing Flow
+
+```
+1. User activates recording → Lightweight capture
+2. Browser (Minimal Processing):
    a. Capture tab stream via chrome.tabCapture API
-   b. Track video element position for smart cropping
-   c. Compress with WebCodecs API
-   d. Extract audio in browser
-   e. Run Whisper.cpp WASM (transcription)
-   f. Store in IndexedDB (5-min buffer)
+   b. Track video element position
+   c. Basic compression with WebCodecs
+   d. Stream chunks to API Gateway
+   e. Maintain 5-min local buffer (fallback)
    
-3. Smart Upload (90% bandwidth saved):
-   - Compressed keyframes + audio only
-   - Transcript JSON (tiny)
-   - Skip if no activity detected
+3. API Gateway (Load Balanced):
+   - Authenticate request
+   - Rate limiting per user tier
+   - Route to appropriate queue
+   - Return job ID for tracking
    
-4. Edge Function Processing (Cloudflare/Supabase):
-   a. Receive compressed data
-   b. Store in R2 (no egress fees!)
-   c. Quick keyword filtering (free)
-   d. If potential highlight:
-      - Call Groq API (Llama 3.1)
-      - Query 48hr context from DB
-      - GPT-4 only if complex
+4. Queue Processing (BullMQ + Redis):
+   a. Priority-based job scheduling
+   b. Distribute to worker pools:
+      - Video: FFmpeg processing (10-20 workers)
+      - Transcription: Whisper AI (20-30 workers)
+      - AI Analysis: Groq/GPT-4 (5-10 workers)
+      - Clip Generation: Assembly (10-15 workers)
+   c. Automatic retry with exponential backoff
+   d. Dead letter queue for failed jobs
    
-5. Clip Generation:
-   - Pull from browser buffer if <5 min
-   - Pull from R2 if older
-   - Generate clip with context
-   - Export to all platforms
+5. Worker Processing:
+   - Horizontal scaling based on load
+   - GPU acceleration for AI tasks
+   - Batch processing for efficiency
+   - Circuit breakers for external APIs
    
-6. Storage Management:
-   - Browser: 5-min rolling buffer
-   - R2: 48-hour compressed archive  
-   - Auto-cleanup after 48 hours
+6. Storage Strategy:
+   - Hot: Redis cluster (immediate access)
+   - Warm: CDN cache (recent clips)
+   - Cold: R2/S3 (48-hour archive)
+   - Automatic tiering and cleanup
 ```
 
 ## 📁 Project Structure
@@ -82,25 +92,29 @@ Chrome Extension (Vue 3 + WASM Processing)
 clippy-mono/
 ├── apps/
 │   ├── chrome-extension/      # Vue 3 Chrome extension
-│   └── website/              # Next.js marketing website
+│   ├── website/              # Next.js marketing website
+│   └── edge/                # Edge functions
 │
 ├── services/
-│   ├── api-gateway/          # Request routing & load balancing
-│   ├── auth-service/         # User authentication & JWT
-│   ├── stream-service/       # Handle stream chunks & storage
-│   ├── audio-service/        # Audio extraction & transcription
-│   ├── video-service/        # Video processing & manipulation
-│   ├── clip-service/         # AI analysis & clip generation
-│   └── export-service/       # Platform-specific formatting
+│   ├── api-gateway/          # Load balancing & routing
+│   ├── queue-manager/        # BullMQ queue orchestration
+│   └── workers/              # Distributed worker pools
+│       ├── video-worker/     # FFmpeg processing
+│       ├── transcription/    # Whisper AI processing
+│       ├── ai-analysis/      # Groq/GPT-4 analysis
+│       ├── clip-generation/  # Clip assembly
+│       └── export/          # Platform formatting
 │
 ├── packages/
-│   ├── types/                # Shared TypeScript types
-│   ├── config/               # Shared configuration
-│   └── database/             # Database schemas & migrations
+│   ├── shared/              # Shared types & utils
+│   ├── queue/               # Queue abstractions
+│   ├── cache/               # Caching strategies
+│   └── database/            # DB schemas & pooling
 │
 └── infrastructure/
-    ├── docker/               # Docker configurations
-    └── scripts/              # Deployment scripts
+    ├── docker/              # Container configs
+    ├── k8s/                 # Kubernetes manifests
+    └── terraform/           # Infrastructure as code
 ```
 
 ## 🛠️ Technology Stack
@@ -134,14 +148,24 @@ clippy-mono/
 - **Embeddings**: Local ONNX models
 
 ### Data Layer
-- **Database & Auth**: Supabase (all-in-one)
-  - PostgreSQL with built-in caching
-  - Authentication & JWT
-  - Realtime subscriptions
-  - Edge Functions
-- **Storage**: Cloudflare R2 (no egress fees!)
-- **Buffer**: Browser IndexedDB + R2
-- **CDN**: Cloudflare (unlimited bandwidth free)
+- **Queue System**: BullMQ + Redis Cluster
+  - Job queues with priority levels
+  - Distributed processing
+  - Automatic retries and dead letter queues
+  - Real-time job monitoring
+- **Database**: Supabase PostgreSQL Cluster
+  - Connection pooling (PgBouncer)
+  - Read replicas for scaling
+  - Automated backups
+- **Cache Layers**:
+  - L1: Redis cluster (hot data)
+  - L2: CDN edge cache
+  - L3: Browser IndexedDB
+- **Storage Tiers**:
+  - Hot: Redis (5-min buffer)
+  - Warm: CDN (recent clips)
+  - Cold: Cloudflare R2/S3 (archives)
+- **CDN**: Cloudflare with smart caching
 
 ## 📊 Service Details
 
@@ -239,7 +263,7 @@ npm install
 cp .env.example .env
 # Add your Supabase credentials to .env
 
-# Start local infrastructure (Redis, RabbitMQ, MinIO)
+# Start local infrastructure (Redis cluster for BullMQ)
 docker-compose up -d
 
 # Initialize Supabase database
@@ -293,30 +317,6 @@ npm run dev --filter=auth-service
 
 # Chrome extension
 npm run dev --filter=chrome-extension
-```
-
-## 📝 API Endpoints
-
-### Authentication
-```
-POST /api/auth/register
-POST /api/auth/login
-POST /api/auth/refresh
-```
-
-### Streaming
-```
-POST /api/stream/init
-WS   /api/stream/upload
-POST /api/stream/complete
-```
-
-### Clips
-```
-GET  /api/clips
-GET  /api/clips/:id
-POST /api/clips/generate
-GET  /api/clips/:id/export/:platform
 ```
 
 ## 🎯 MVP Milestones
