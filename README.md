@@ -20,70 +20,77 @@ Clippy is a real-time stream clipping tool that processes live streams as they h
 - **Real-Time Notifications**: Alert users when new clips are generated
 - **Auto-Cleanup**: Automatic deletion of raw streams after 48 hours
 
-## 🏗️ System Architecture (Queue-Based Scalable)
+## 🏗️ System Architecture (Phoenix/Elixir)
 
-### Scalable Queue-First Architecture
+### Why Phoenix/Elixir?
+- **Concurrency**: Millions of lightweight processes (2KB each)
+- **Fault Tolerance**: Let it crash philosophy with supervisors
+- **Real-time**: Built-in WebSocket support via Phoenix Channels
+- **No Queue Needed**: GenStage provides backpressure and flow control
+- **Hot Code Reload**: Deploy updates without downtime
+- **Distributed**: Easily scale across multiple nodes
 
-```
-Chrome Extension (Vue 3 + Capture Only)
-        ↓
-   API Gateway (Load Balanced)
-        ↓
-   Queue System (BullMQ + Redis Cluster)
-        ↓
-   Worker Pool Architecture:
-  - Video Workers: Chunk processing & compression
-  - Transcription Workers: Whisper AI processing
-  - AI Workers: Groq/GPT-4 analysis with rate limiting
-  - Clip Workers: Generation and assembly
-  - Export Workers: Platform-specific formatting
-        ↓
-   Storage Tiers:
-  - Hot: Redis (5-min buffer)
-  - Warm: CDN (recent clips)
-  - Cold: Cloudflare R2 (48-hour archive)
-        ↓
-   Database: Supabase (PostgreSQL cluster)
-```
-
-### Scalable Queue-Based Processing Flow
+### Simplified Real-Time Architecture
 
 ```
-1. User activates recording → Lightweight capture
-2. Browser (Minimal Processing):
+Chrome Extension (Vue 3 + WASM)
+        ↓ WebSocket
+   Phoenix Channels (Real-time)
+        ↓
+   Phoenix/Elixir Application
+      ├── GenStage Pipeline
+      │   ├── Video Processing (FFmpeg NIFs)
+      │   ├── Transcription (Whisper via Workers)
+      │   └── AI Analysis (Groq/OpenAI)
+      ├── Task.Supervisor
+      │   └── Dynamic Worker Pools
+      ├── ETS Cache (Hot Storage)
+      └── Ecto (Database Layer)
+        ↓
+   External Services:
+      ├── PostgreSQL (Supabase/Self-hosted)
+      ├── Cloudflare R2 (Object Storage)
+      └── AI APIs (Groq/OpenAI)
+```
+
+### Real-Time Processing Flow
+
+```
+1. User activates recording → Browser capture starts
+2. Browser Processing:
    a. Capture tab stream via chrome.tabCapture API
-   b. Track video element position
-   c. Basic compression with WebCodecs
-   d. Stream chunks to API Gateway
-   e. Maintain 5-min local buffer (fallback)
+   b. Track video element position for smart cropping
+   c. Local processing with WebCodecs/WASM (optional)
+   d. Stream chunks via Phoenix Channels (WebSocket)
+   e. Maintain 5-min IndexedDB buffer (fallback)
    
-3. API Gateway (Load Balanced):
-   - Authenticate request
-   - Rate limiting per user tier
-   - Route to appropriate queue
-   - Return job ID for tracking
+3. Phoenix Application Receives Stream:
+   - Phoenix Channels handle WebSocket connections
+   - Built-in rate limiting and backpressure
+   - Automatic process spawning per connection
+   - Real-time presence tracking
    
-4. Queue Processing (BullMQ + Redis):
-   a. Priority-based job scheduling
-   b. Distribute to worker pools:
-      - Video: FFmpeg processing (10-20 workers)
-      - Transcription: Whisper AI (20-30 workers)
-      - AI Analysis: Groq/GPT-4 (5-10 workers)
-      - Clip Generation: Assembly (10-15 workers)
-   c. Automatic retry with exponential backoff
-   d. Dead letter queue for failed jobs
+4. GenStage Processing Pipeline:
+   a. Ingests video chunks from channels
+   b. Parallel processing stages:
+      - Video: FFmpeg via Elixir NIFs
+      - Audio: Extract and queue for transcription
+      - Transcription: Worker pool calling Whisper API
+      - AI Analysis: Groq/GPT-4 via HTTP clients
+   c. Flow control with automatic backpressure
+   d. Supervised processes with auto-restart
    
-5. Worker Processing:
-   - Horizontal scaling based on load
-   - GPU acceleration for AI tasks
-   - Batch processing for efficiency
-   - Circuit breakers for external APIs
+5. Elixir's Built-in Scaling:
+   - Millions of lightweight processes
+   - Automatic load distribution
+   - No external message queue needed
+   - Sub-millisecond process spawning
    
-6. Storage Strategy:
-   - Hot: Redis cluster (immediate access)
-   - Warm: CDN cache (recent clips)
-   - Cold: R2/S3 (48-hour archive)
-   - Automatic tiering and cleanup
+6. Storage Management:
+   - Hot: ETS tables (in-memory, microsecond access)
+   - Warm: Phoenix distributed cache
+   - Cold: R2/S3 via ExAws (48-hour archive)
+   - GenServer for cleanup scheduling
 ```
 
 ## 📁 Project Structure
@@ -92,29 +99,27 @@ Chrome Extension (Vue 3 + Capture Only)
 clippy-mono/
 ├── apps/
 │   ├── chrome-extension/      # Vue 3 Chrome extension
-│   ├── website/              # Next.js marketing website
-│   └── edge/                # Edge functions
+│   ├── clippy/               # Phoenix/Elixir application
+│   │   ├── lib/
+│   │   │   ├── clippy/      # Business logic
+│   │   │   │   ├── pipeline/    # GenStage processors
+│   │   │   │   ├── workers/     # Task processors
+│   │   │   │   ├── storage/     # Storage adapters
+│   │   │   │   └── ai/          # AI integrations
+│   │   │   └── clippy_web/   # Phoenix web layer
+│   │   │       ├── channels/    # WebSocket handlers
+│   │   │       ├── controllers/ # REST API
+│   │   │       └── live/        # LiveView UI
+│   │   └── config/           # Environment configs
+│   └── website/              # Next.js marketing website
 │
-├── services/
-│   ├── api-gateway/          # Load balancing & routing
-│   ├── queue-manager/        # BullMQ queue orchestration
-│   └── workers/              # Distributed worker pools
-│       ├── video-worker/     # FFmpeg processing
-│       ├── transcription/    # Whisper AI processing
-│       ├── ai-analysis/      # Groq/GPT-4 analysis
-│       ├── clip-generation/  # Clip assembly
-│       └── export/          # Platform formatting
-│
-├── packages/
+├── packages/                 # Shared JavaScript packages
 │   ├── shared/              # Shared types & utils
-│   ├── queue/               # Queue abstractions
-│   ├── cache/               # Caching strategies
-│   └── database/            # DB schemas & pooling
+│   └── wasm/                # WebAssembly modules
 │
 └── infrastructure/
-    ├── docker/              # Container configs
-    ├── k8s/                 # Kubernetes manifests
-    └── terraform/           # Infrastructure as code
+    ├── docker/              # Container config (single Dockerfile)
+    └── deployment/          # Deployment scripts
 ```
 
 ## 🛠️ Technology Stack
@@ -135,57 +140,58 @@ clippy-mono/
 - **Storage**: IndexedDB for 5-min buffer
 - **APIs**: MediaRecorder, WebCodecs, Chrome Extension APIs
 
-### Edge Computing
-- **Functions**: Cloudflare Workers + Supabase Edge Functions
-- **Runtime**: Deno/V8 Isolates (0ms cold start)
-- **Processing**: Rust compiled to WASM
-- **Features**: Auto-scaling, global distribution
+### Backend Processing
+- **Core**: Phoenix/Elixir application server
+- **Concurrency**: BEAM VM with millions of lightweight processes
+- **Processing**: GenStage pipelines for streaming data
+- **Features**: Built-in fault tolerance, auto-scaling, hot code reloading
 
 ### AI/ML (Tiered Approach)
-- **Browser**: Whisper.cpp WASM (free)
-- **Primary**: Groq API (Whisper + Llama 3.1)
+- **Browser**: Whisper.cpp WASM (free, client-side)
+- **Primary**: Groq API (Whisper + Llama 3.1) via Phoenix workers
 - **Fallback**: GPT-4 for complex context only
-- **Embeddings**: Local ONNX models
+- **Processing**: Task.Supervisor for parallel AI calls
 
 ### Data Layer
-- **Queue System**: BullMQ + Redis Cluster
-  - Job queues with priority levels
-  - Distributed processing
-  - Automatic retries and dead letter queues
-  - Real-time job monitoring
-- **Database**: Supabase PostgreSQL Cluster
-  - Connection pooling (PgBouncer)
-  - Read replicas for scaling
+- **Real-Time Processing**: Phoenix/Elixir
+  - GenStage pipeline for stream processing
+  - Built-in process supervision
+  - Automatic backpressure handling
+  - No external queue needed
+- **Database**: Supabase PostgreSQL
+  - Direct Ecto integration
+  - Connection pooling built-in
   - Automated backups
 - **Cache Layers**:
-  - L1: Redis cluster (hot data)
-  - L2: CDN edge cache
+  - L1: ETS (in-memory, microsecond access)
+  - L2: Phoenix cache (distributed across cluster)
   - L3: Browser IndexedDB
 - **Storage Tiers**:
-  - Hot: Redis (5-min buffer)
+  - Hot: ETS (5-min buffer)
   - Warm: CDN (recent clips)
   - Cold: Cloudflare R2/S3 (archives)
 - **CDN**: Cloudflare with smart caching
 
-## 📊 Service Details
+## 📊 Phoenix Application Modules
 
-### Auth Service
-- User registration/login
-- JWT token generation
-- Session management
+### Authentication Module
+- User registration/login via Phoenix controllers
+- JWT token generation with Guardian
+- Session management in ETS
 
-### Stream Service (Dual Buffer System)
-- Receive video chunks via WebSocket (10-30 sec intervals)
+### Stream Processing Pipeline (GenStage)
+- Receive video chunks via Phoenix Channels (10-30 sec intervals)
 - Dual storage management:
-  - Hot buffer: 5-minute rolling buffer in Redis for immediate access
-  - Cold storage: 48-hour archive in S3/Supabase for context
-- Coordinate chunk processing pipeline
-- Manage automatic cleanup (48-hour expiry)
-- Handle chunk retrieval from both storage tiers
+  - Hot buffer: 5-minute rolling buffer in ETS (microsecond access)
+  - Cold storage: 48-hour archive in R2 via ExAws
+- GenStage pipeline with automatic flow control
+- Quantum scheduler for cleanup tasks
+- Efficient chunk retrieval from storage tiers
 
-### Audio Service (Continuous Transcription)
-- Extract audio from video chunks in real-time
-- Process with Whisper AI (streaming mode)
+### Audio Transcription Module
+- Extract audio from video chunks using FFmpeg NIFs
+- Parallel processing with Task.Supervisor worker pools
+- Call Whisper AI (Groq/OpenAI) via HTTP clients
 - Return timestamped transcript segments:
 ```json
 {
@@ -202,16 +208,16 @@ clippy-mono/
 }
 ```
 
-### Video Service (Buffer Management)
-- Maintain video buffer for clip generation
-- Quick clip extraction from buffer
-- Real-time quality optimization
-- Thumbnail generation on-the-fly
+### Video Processing Module
+- Maintain video buffer in ETS tables
+- Quick clip extraction via FFmpeg NIFs
+- Real-time quality optimization in GenStage
+- Parallel thumbnail generation with Task.async_stream
 
-### Clip Service (Context-Aware Detection)
-- Dual analysis mode:
+### Clip Detection Module (AI Analysis)
+- Dual analysis mode in GenStage:
   - Immediate: Sliding window (last 2-3 minutes)
-  - Historical: Query last 48 hours for context
+  - Historical: Query last 48 hours via Ecto
 - Enhanced AI detection with full context:
   - Immediate triggers: excitement, key phrases, sentiment
   - Contextual triggers: callbacks, story arcs, predictions
@@ -222,55 +228,75 @@ clippy-mono/
   - Multi-segment clips for story completion
 - Retroactive clipping when context emerges later
 
-### Export Service
-- Platform-specific formatting:
+### Export Module
+- Platform-specific formatting via parallel Task.Supervisor:
   - YouTube Shorts (9:16, <60s)
   - TikTok (9:16, <3min)
   - Twitter/X (various ratios, <2:20)
   - Instagram Reels (9:16, <90s)
-- Add captions/subtitles
-- Apply platform requirements
+- FFmpeg NIFs for caption overlay
+- GenServer for export queue management
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 ```bash
-Node.js 20+
-Docker & Docker Compose
-Supabase Account (free tier works)
-Python 3.10+ (for AI services)
+# Core Requirements
+Elixir 1.15+
+Erlang/OTP 26+
+Node.js 20+ (for Chrome extension and website)
+PostgreSQL 14+ (or Supabase account)
+FFmpeg 6.0+ (for video processing)
+
+# Optional but Recommended
+Redis (for additional caching)
+Docker (for containerized deployment)
 ```
 
 ### Installation
 
-#### 1. Setup Supabase
+#### 1. Database Setup Options
+
+**Option A: Supabase (Managed)**
 ```bash
 # Create a Supabase project at https://supabase.com
-# Follow instructions in SUPABASE_SETUP.md
-# Copy your API keys
+# Copy connection string from Settings > Database
+# Add to .env file
 ```
 
-#### 2. Setup Project
+**Option B: Local PostgreSQL**
+```bash
+# Install PostgreSQL locally
+sudo apt-get install postgresql-14  # Ubuntu/Debian
+brew install postgresql@14          # macOS
+
+# Create database user
+sudo -u postgres createuser -s clippy_user
+sudo -u postgres psql -c "ALTER USER clippy_user PASSWORD 'secure_password';"
+```
+
+#### 2. Setup Phoenix Application
 ```bash
 # Clone repository
 git clone https://github.com/yourusername/clippy-mono.git
 cd clippy-mono
 
-# Install dependencies
+# Install JavaScript dependencies for Chrome extension
 npm install
+
+# Setup Phoenix application
+cd apps/clippy
+mix deps.get
+mix ecto.create
+mix ecto.migrate
 
 # Create .env file
 cp .env.example .env
-# Add your Supabase credentials to .env
+# Add your Supabase/PostgreSQL credentials to .env
 
-# Start local infrastructure (Redis cluster for BullMQ)
-docker-compose up -d
-
-# Initialize Supabase database
-# Run the SQL scripts from SUPABASE_SETUP.md in Supabase SQL Editor
-
-# Start development
-npm run dev
+# Start Phoenix server
+mix phx.server
+# Phoenix is now running at http://localhost:4000
 ```
 
 ### Chrome Extension Development
@@ -296,27 +322,90 @@ npm run dev
 # Website will auto-reload on changes
 ```
 
-## 🔄 Development Workflow
+## 🖄 Development Workflow
 
-### Adding a New Microservice
-```bash
-cd services
-mkdir new-service
-cd new-service
-npm init -y
-npm install express typescript @types/node
+### Key Phoenix/Elixir Dependencies
+```elixir
+# mix.exs dependencies
+defp deps do
+  [
+    {:phoenix, "~> 1.7.10"},
+    {:phoenix_ecto, "~> 4.4"},
+    {:ecto_sql, "~> 3.11"},
+    {:postgrex, ">= 0.0.0"},
+    {:phoenix_live_view, "~> 0.20"},
+    {:phoenix_live_dashboard, "~> 0.8"},
+    {:gen_stage, "~> 1.2"},
+    {:flow, "~> 1.2"},
+    {:ex_aws, "~> 2.4"},
+    {:ex_aws_s3, "~> 2.4"},
+    {:httpoison, "~> 2.2"},
+    {:jason, "~> 1.4"},
+    {:guardian, "~> 2.3"},
+    {:quantum, "~> 3.5"},
+    {:ffmpex, "~> 0.10"},
+    {:telemetry_metrics, "~> 0.6"},
+    {:telemetry_poller, "~> 1.0"},
+    {:cachex, "~> 3.6"},
+    {:hammer, "~> 6.1"}
+  ]
+end
 ```
 
-### Running Services
+### Adding a New Module to Phoenix
 ```bash
-# All services
-npm run dev
+# Create a new context module
+cd apps/clippy
+mix phx.gen.context Streaming Video videos title:string
 
-# Specific service
-npm run dev --filter=auth-service
+# Create a new GenStage processor
+mix phx.gen.context Pipeline VideoProcessor
 
-# Chrome extension
-npm run dev --filter=chrome-extension
+# Generate a new channel
+mix phx.gen.channel Stream
+```
+
+### Running the Application
+```bash
+# Start Phoenix with interactive shell
+cd apps/clippy
+iex -S mix phx.server
+
+# Run tests with coverage
+mix test --cover
+
+# Run specific test file
+mix test test/clippy/pipeline_test.exs
+
+# Check code quality
+mix format --check-formatted
+mix credo --strict
+mix dialyzer
+
+# Performance monitoring
+iex> :observer.start()  # GUI system monitor
+iex> :etop.start()      # Terminal process monitor
+
+# Live Dashboard (available at http://localhost:4000/dashboard)
+mix phx.server
+```
+
+### Phoenix/Elixir Performance Tuning
+```elixir
+# config/runtime.exs
+config :clippy, ClippyWeb.Endpoint,
+  http: [port: 4000, transport_options: [num_acceptors: 100]]
+
+# Increase ETS table limits
+config :clippy, :ets_settings,
+  max_tables: 10_000,
+  max_memory: 1_073_741_824  # 1GB
+
+# Configure connection pools
+config :clippy, Clippy.Repo,
+  pool_size: 20,
+  queue_target: 5000,
+  queue_interval: 1000
 ```
 
 ## 🎯 MVP Milestones

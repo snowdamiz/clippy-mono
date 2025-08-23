@@ -5,7 +5,7 @@
 ```
 clippy-mono/
 ├── apps/                      # Application packages
-│   ├── extension/            # Chrome Extension (Vue 3)
+│   ├── chrome-extension/     # Chrome Extension (Vue 3)
 │   │   ├── src/
 │   │   │   ├── background/  # Service worker scripts
 │   │   │   ├── content/     # Content scripts
@@ -19,72 +19,68 @@ clippy-mono/
 │   │   ├── public/          # Static assets
 │   │   └── dist/            # Build output
 │   │
-│   ├── website/             # Marketing Website (Next.js 14)
-│   │   ├── app/             # App Router pages
-│   │   ├── components/      # React components
-│   │   ├── lib/             # Utilities and helpers
-│   │   ├── public/          # Static assets
-│   │   └── styles/          # CSS and Tailwind styles
+│   ├── clippy/              # Phoenix/Elixir Application
+│   │   ├── lib/
+│   │   │   ├── clippy/      # Business logic
+│   │   │   │   ├── pipeline/    # GenStage processors
+│   │   │   │   │   ├── chunk_receiver.ex
+│   │   │   │   │   ├── video_processor.ex
+│   │   │   │   │   ├── transcriber.ex
+│   │   │   │   │   ├── ai_analyzer.ex
+│   │   │   │   │   └── clip_generator.ex
+│   │   │   │   ├── workers/     # Task processors
+│   │   │   │   │   ├── video_worker.ex
+│   │   │   │   │   ├── transcription_worker.ex
+│   │   │   │   │   └── export_worker.ex
+│   │   │   │   ├── storage/     # Storage adapters
+│   │   │   │   │   ├── ets_cache.ex
+│   │   │   │   │   ├── r2_storage.ex
+│   │   │   │   │   └── supabase.ex
+│   │   │   │   ├── ai/          # AI integrations
+│   │   │   │   │   ├── groq_client.ex
+│   │   │   │   │   ├── openai_client.ex
+│   │   │   │   │   └── whisper.ex
+│   │   │   │   └── application.ex
+│   │   │   └── clippy_web/   # Phoenix web layer
+│   │   │       ├── channels/    # WebSocket handlers
+│   │   │       │   ├── recording_channel.ex
+│   │   │       │   └── user_socket.ex
+│   │   │       ├── controllers/ # REST API
+│   │   │       │   ├── auth_controller.ex
+│   │   │       │   ├── clip_controller.ex
+│   │   │       │   └── export_controller.ex
+│   │   │       ├── live/        # LiveView UI
+│   │   │       │   ├── dashboard_live.ex
+│   │   │       │   └── monitoring_live.ex
+│   │   │       └── endpoint.ex
+│   │   ├── config/           # Environment configs
+│   │   │   ├── config.exs
+│   │   │   ├── dev.exs
+│   │   │   ├── prod.exs
+│   │   │   └── runtime.exs
+│   │   ├── priv/             # Static files & migrations
+│   │   │   ├── repo/
+│   │   │   │   └── migrations/
+│   │   │   └── static/
+│   │   └── mix.exs           # Project definition
 │   │
-│   └── edge/                # Edge Functions
-│       ├── cloudflare/      # Cloudflare Workers
-│       │   └── src/         # Worker source code
-│       └── supabase/        # Supabase Edge Functions
-│           └── functions/   # Function implementations
+│   └── website/             # Marketing Website (Next.js 14)
+│       ├── app/             # App Router pages
+│       ├── components/      # React components
+│       ├── lib/             # Utilities and helpers
+│       ├── public/          # Static assets
+│       └── styles/          # CSS and Tailwind styles
 │
-├── services/                 # Backend services
-│   ├── api-gateway/         # API Gateway with load balancing
-│   │   ├── src/
-│   │   │   ├── routes/      # API route definitions
-│   │   │   ├── middleware/  # Auth, rate limiting, etc.
-│   │   │   └── utils/       # Gateway utilities
-│   │   └── Dockerfile
-│   │
-│   ├── queue-manager/       # BullMQ queue orchestration
-│   │   ├── src/
-│   │   │   ├── queues/      # Queue definitions
-│   │   │   ├── jobs/        # Job schemas and types
-│   │   │   └── monitoring/  # Bull Board setup
-│   │   └── Dockerfile
-│   │
-│   └── workers/             # Distributed worker pools
-│       ├── video-worker/    # FFmpeg processing
-│       ├── transcription/   # Whisper AI processing  
-│       ├── ai-analysis/     # Groq/GPT-4 analysis
-│       ├── clip-generation/ # Clip assembly
-│       └── export/          # Platform formatting
-│
-├── packages/                 # Shared packages
+├── packages/                 # Shared JavaScript packages
 │   ├── shared/              # Shared types and utilities
 │   │   └── src/
 │   │       ├── types/       # TypeScript type definitions
 │   │       ├── utils/       # Shared utilities
 │   │       └── constants/   # Shared constants
 │   │
-│   ├── queue/               # Queue abstractions
-│   │   ├── src/
-│   │   │   ├── client/      # BullMQ client wrapper
-│   │   │   ├── jobs/        # Job interfaces
-│   │   │   └── workers/     # Worker base classes
-│   │   └── package.json
-│   │
-│   ├── cache/               # Caching strategies
-│   │   ├── src/
-│   │   │   ├── redis/       # Redis cache layer
-│   │   │   ├── cdn/         # CDN cache helpers
-│   │   │   └── strategies/  # Cache patterns
-│   │   └── package.json
-│   │
-│   ├── wasm/                # WebAssembly modules
-│   │   ├── src/             # WASM wrapper code
-│   │   └── lib/             # Compiled WASM files
-│   │
-│   ├── ai/                  # AI integration layer
-│   │   └── src/             # AI service implementations
-│   │
-│   └── database/            # Database layer
-│       ├── src/             # Database client code
-│       └── migrations/      # SQL migrations
+│   └── wasm/                # WebAssembly modules
+│       ├── src/             # WASM wrapper code
+│       └── lib/             # Compiled WASM files
 │
 ├── docs/                     # Documentation
 ├── tests/                    # Test suites
@@ -93,14 +89,11 @@ clippy-mono/
 │
 ├── infrastructure/           # Infrastructure configuration
 │   ├── docker/              # Docker configurations
-│   │   ├── docker-compose.yml       # Local development
-│   │   ├── docker-compose.prod.yml  # Production setup
-│   │   └── redis-cluster/   # Redis cluster config
-│   ├── k8s/                 # Kubernetes manifests
-│   │   ├── deployments/     # Service deployments
-│   │   ├── services/        # K8s services
-│   │   └── configmaps/      # Configuration
-│   └── terraform/           # Infrastructure as code
+│   │   ├── Dockerfile       # Phoenix app container
+│   │   └── docker-compose.yml  # Local development
+│   └── deployment/          # Deployment scripts
+│       ├── fly.toml         # Fly.io config
+│       └── release.sh      # Release script
 │
 ├── scripts/                  # Build and utility scripts
 ├── config/                   # Configuration files
@@ -112,7 +105,7 @@ clippy-mono/
 
 ### Apps
 
-#### Chrome Extension (`apps/extension`)
+#### Chrome Extension (`apps/chrome-extension`)
 - **Framework**: Vue 3 + Vite + TypeScript
 - **State Management**: Pinia
 - **Styling**: TailwindCSS
@@ -121,6 +114,20 @@ clippy-mono/
   - Content Scripts: Injected into web pages for video capture
   - Popup UI: Main user interface
   - Options Page: Settings and configuration
+  - WebSocket client for Phoenix Channels
+
+#### Phoenix Application (`apps/clippy`)
+- **Framework**: Phoenix 1.7+ with Elixir
+- **Real-Time**: Phoenix Channels for WebSocket
+- **Processing**: GenStage for stream processing
+- **Features**:
+  - WebSocket handling for video chunks
+  - GenStage pipeline for parallel processing
+  - Task.Supervisor for dynamic workers
+  - ETS for in-memory caching
+  - LiveView for admin dashboard
+  - Ecto for database interactions
+  - Built-in process supervision
 
 #### Marketing Website (`apps/website`)
 - **Framework**: Next.js 14 with App Router
@@ -133,35 +140,19 @@ clippy-mono/
   - SEO and performance optimized
   - Analytics integration
 
-#### Edge Functions (`apps/edge`)
-- **Cloudflare Workers**: API routes, R2 storage, real-time processing
-- **Supabase Functions**: Database operations, auth, real-time subscriptions
-
 ### Packages
 
 #### Shared (`packages/shared`)
 - TypeScript type definitions
 - Shared constants and configuration
-- Utility functions used across packages
-- Zod schemas for validation
+- Utility functions used across JavaScript apps
+- WebSocket message types
 
 #### WASM (`packages/wasm`)
 - FFmpeg.wasm for video processing
 - Whisper.cpp for transcription
 - WebCodecs wrappers
 - Worker implementations
-
-#### AI (`packages/ai`)
-- Groq API integration
-- OpenAI fallback
-- LangChain for complex workflows
-- Prompt templates and management
-
-#### Database (`packages/database`)
-- Supabase client configuration
-- Database types (generated from schema)
-- Migration scripts
-- Seed data for development
 
 ## 🚀 Getting Started
 
@@ -213,12 +204,8 @@ npm run extension:build
 All packages use npm workspaces for dependency management:
 - `@clippy/extension` - Chrome Extension app
 - `@clippy/website` - Marketing website
-- `@clippy/cloudflare-edge` - Cloudflare Workers
-- `@clippy/supabase-edge` - Supabase Edge Functions
 - `@clippy/shared` - Shared utilities and types
 - `@clippy/wasm` - WebAssembly modules
-- `@clippy/ai` - AI integration layer
-- `@clippy/database` - Database layer
 
 ### Import Aliases
 TypeScript path aliases are configured for clean imports:
