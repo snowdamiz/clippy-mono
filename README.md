@@ -81,7 +81,8 @@ Chrome Extension (Vue 3 + WASM Processing)
 ```
 clippy-mono/
 ├── apps/
-│   └── chrome-extension/      # Vue 3 Chrome extension
+│   ├── chrome-extension/      # Vue 3 Chrome extension
+│   └── website/              # Next.js marketing website
 │
 ├── services/
 │   ├── api-gateway/          # Request routing & load balancing
@@ -103,6 +104,14 @@ clippy-mono/
 ```
 
 ## 🛠️ Technology Stack
+
+### Marketing Website
+- **Framework**: Next.js 14 (App Router)
+- **Styling**: Tailwind CSS + Framer Motion
+- **Deployment**: Vercel
+- **Analytics**: Google Analytics 4 + Vercel Analytics
+- **Components**: Radix UI + Heroicons
+- **Performance**: 95+ Lighthouse score target
 
 ### Chrome Extension
 - **Framework**: Vue 3 + TypeScript
@@ -253,6 +262,16 @@ npm run dev
 # 4. Select dist/ directory
 ```
 
+### Marketing Website Development
+```bash
+cd apps/website
+npm install
+npm run dev
+
+# Open http://localhost:3000 in browser
+# Website will auto-reload on changes
+```
+
 ## 🔄 Development Workflow
 
 ### Adding a New Microservice
@@ -327,6 +346,40 @@ GET  /api/clips/:id/export/:platform
 - [ ] Real-time notifications in extension
 - [ ] Clip dashboard in extension
 - [ ] Download & share functionality
+
+## 💰 Pricing Tiers
+
+### Free Tier
+- **1 hour/day** recording limit
+- **3 clips per day** generation limit
+- **12-hour** storage retention
+- Basic AI detection only
+- Watermarked exports
+- Limited to 720p quality
+- Browser-only processing
+
+### Pro Tier ($9.99/month)
+- **4 hours/day** recording
+- **Unlimited clips** generation
+- **48-hour** storage retention
+- Extended Context System™
+- Advanced AI detection with Groq
+- All export formats (YouTube, TikTok, etc.)
+- Priority processing
+- **1080p** quality support
+- Email support
+
+### Business Tier ($29.99/month)
+- **Unlimited** recording
+- **7-day** storage retention
+- GPT-4 priority access for complex clips
+- API access for automation
+- Team features (5 users included)
+- Custom AI prompts
+- Webhook integrations
+- **4K** quality support
+- Priority support
+- Custom branding options
 
 ## 🔮 Future Enhancements
 - Web dashboard for clip management

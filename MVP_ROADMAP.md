@@ -1150,7 +1150,108 @@
 - [ ] Create cleanup automation
 - [ ] Monitor API usage
 
-### Phase 11: Deployment & Launch Prep (Days 59-60)
+### Phase 11: Marketing Website (Days 59-62)
+
+#### Next.js Website Setup
+- [ ] Initialize Next.js 14 project with App Router
+  - [ ] Run create-next-app with TypeScript
+  - [ ] Configure Tailwind CSS
+  - [ ] Set up Framer Motion for animations
+  - [ ] Install Heroicons for UI icons
+  - [ ] Configure SEO defaults
+- [ ] Set up project structure
+  - [ ] Create app directory with routes
+  - [ ] Set up components folder
+  - [ ] Configure public assets
+  - [ ] Add custom fonts (Inter, Cal Sans)
+- [ ] Configure Vercel deployment
+  - [ ] Connect GitHub repository
+  - [ ] Set up environment variables
+  - [ ] Configure custom domain
+  - [ ] Enable analytics
+
+#### Landing Page Components
+- [ ] Create animated hero section
+  - [ ] Build hero headline with gradient text
+  - [ ] Add animated demo video player
+  - [ ] Create "Install Extension" CTA button
+  - [ ] Add floating UI elements
+  - [ ] Implement scroll animations
+- [ ] Build features showcase
+  - [ ] Create feature cards with icons
+  - [ ] Add interactive hover effects
+  - [ ] Implement tab-based feature demo
+  - [ ] Add comparison with competitors
+  - [ ] Create animated statistics
+- [ ] Design pricing section
+  - [ ] Build pricing cards (Free, Pro, Business)
+  - [ ] Add feature comparison table
+  - [ ] Create toggle for monthly/yearly
+  - [ ] Implement special launch pricing
+  - [ ] Add FAQ accordion
+- [ ] Create testimonials section
+  - [ ] Build testimonial cards
+  - [ ] Add video testimonials
+  - [ ] Create rotating carousel
+  - [ ] Add streamer logos
+- [ ] Build footer
+  - [ ] Add navigation links
+  - [ ] Include social media icons
+  - [ ] Add legal links (Privacy, Terms)
+  - [ ] Create newsletter signup
+
+#### Additional Pages
+- [ ] Create pricing page
+  - [ ] Detailed tier comparison
+  - [ ] ROI calculator
+  - [ ] Enterprise contact form
+- [ ] Build features page
+  - [ ] In-depth feature explanations
+  - [ ] Video demonstrations
+  - [ ] Use case scenarios
+- [ ] Create about page
+  - [ ] Team information
+  - [ ] Company mission
+  - [ ] Contact information
+- [ ] Build legal pages
+  - [ ] Privacy policy
+  - [ ] Terms of service
+  - [ ] Cookie policy
+
+#### SEO & Performance
+- [ ] Implement SEO optimization
+  - [ ] Add meta tags for all pages
+  - [ ] Create sitemap.xml
+  - [ ] Configure robots.txt
+  - [ ] Add Open Graph tags
+  - [ ] Implement structured data
+- [ ] Optimize performance
+  - [ ] Implement image optimization
+  - [ ] Add lazy loading
+  - [ ] Configure caching headers
+  - [ ] Minimize JavaScript bundles
+  - [ ] Achieve 95+ Lighthouse score
+- [ ] Set up analytics
+  - [ ] Install Google Analytics 4
+  - [ ] Configure conversion tracking
+  - [ ] Set up heatmap tracking
+  - [ ] Add Chrome extension install tracking
+
+#### Marketing Integration
+- [ ] Create lead capture forms
+  - [ ] Email signup for updates
+  - [ ] Beta access registration
+  - [ ] Enterprise inquiry form
+- [ ] Add social proof
+  - [ ] Live user counter
+  - [ ] Recent clips showcase
+  - [ ] Twitter testimonial feed
+- [ ] Implement A/B testing
+  - [ ] Test different headlines
+  - [ ] Compare CTA variations
+  - [ ] Optimize conversion funnel
+
+### Phase 12: Deployment & Launch Prep (Days 63-65)
 
 #### Deployment Setup
 - [ ] Configure Cloudflare Workers deployment

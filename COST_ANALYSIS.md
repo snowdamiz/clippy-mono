@@ -133,6 +133,26 @@
 - **Supabase Queue**: Built-in with Edge Functions
 - **Cost**: **$0.00**
 
+### 6. Marketing Website Hosting
+
+#### Vercel Hosting (Next.js)
+- **Framework**: Next.js 14 with App Router
+- **Free tier includes**:
+  - 100 GB bandwidth/month
+  - Automatic HTTPS
+  - Global CDN
+  - Serverless Functions (100 GB-hours)
+  - Analytics (2,500 events/month)
+- **Monthly traffic estimate**: ~10,000 visitors
+- **Bandwidth usage**: ~20 GB/month
+- **Cost**: **$0** (within free tier)
+
+#### Domain & DNS
+- **Domain**: $12/year via Cloudflare
+- **DNS**: Cloudflare (FREE)
+- **SSL**: Automatic via Vercel (FREE)
+- **Monthly cost**: $12/12 = **$1/month**
+
 ## 💰 Total Cost Summary
 
 ### Per 5-Day Period (20 hours content, 8 hours active)
@@ -182,29 +202,35 @@
 ## 🎯 Pricing Strategy Recommendations
 
 ### Free Tier
-- 2 hours/day recording
-- 10 clips per day
-- 24-hour storage
+- 1 hour/day recording
+- 3 clips per day
+- 12-hour storage
 - Browser-only processing
 - Basic AI detection
+- Limited to 720p quality
 
 ### Pro Tier ($9.99/month)
-- 6 hours/day recording
+- 4 hours/day recording
 - Unlimited clips
 - 48-hour storage
 - Extended Context System
 - Advanced AI detection
 - All export formats
 - Priority Groq processing
+- 1080p quality
+- Email support
 
 ### Business Tier ($29.99/month)
 - Unlimited recording
 - 7-day storage
 - GPT-4 priority access
 - API access
-- Team features
+- Team features (5 users)
 - Custom AI prompts
 - Webhook integrations
+- 4K quality support
+- Priority support
+- Custom branding
 
 ## 💡 Already Implemented Optimizations
 
@@ -245,15 +271,18 @@
 | Clips.ai | $15-45/month | 10-45 hours | $1-1.50/hr | Real-time + context |
 | Gling.ai | $15/month | 20 hours | $0.75/hr | Browser-based + live |
 | Streamladder | $19/month | 30 hours | $0.63/hr | 48hr context window |
-| **Clippy** | **$9.99/month** | **180 hours** | **$0.055/hr** | **Lowest cost + most features** |
+| **Clippy Free** | **$0/month** | **15 hours** | **$0/hr** | **Limited features** |
+| **Clippy Pro** | **$9.99/month** | **180 hours** | **$0.055/hr** | **Lowest cost + most features** |
 
 ## 📊 Break-Even Analysis
 
 ### Fixed Costs (Monthly)
 - Cloudflare Workers Pro: $5
 - Supabase Pro (when scaling): $25
-- Domain & misc: $10
-- **Total**: $40
+- Domain (clippy.ai): $12/year = $1/month
+- Vercel Pro (when scaling): $20
+- Misc infrastructure: $4
+- **Total**: $50
 
 ### Variable Costs
 - Per user per month: $1-3

@@ -19,6 +19,13 @@ clippy-mono/
 │   │   ├── public/          # Static assets
 │   │   └── dist/            # Build output
 │   │
+│   ├── website/             # Marketing Website (Next.js 14)
+│   │   ├── app/             # App Router pages
+│   │   ├── components/      # React components
+│   │   ├── lib/             # Utilities and helpers
+│   │   ├── public/          # Static assets
+│   │   └── styles/          # CSS and Tailwind styles
+│   │
 │   └── edge/                # Edge Functions
 │       ├── cloudflare/      # Cloudflare Workers
 │       │   └── src/         # Worker source code
@@ -67,6 +74,17 @@ clippy-mono/
   - Content Scripts: Injected into web pages for video capture
   - Popup UI: Main user interface
   - Options Page: Settings and configuration
+
+#### Marketing Website (`apps/website`)
+- **Framework**: Next.js 14 with App Router
+- **Styling**: Tailwind CSS + Framer Motion
+- **Deployment**: Vercel
+- **Features**:
+  - Landing page with hero, features, pricing
+  - Interactive product demo
+  - Conversion-optimized CTAs
+  - SEO and performance optimized
+  - Analytics integration
 
 #### Edge Functions (`apps/edge`)
 - **Cloudflare Workers**: API routes, R2 storage, real-time processing
@@ -129,6 +147,7 @@ npm run dev
 
 # Or run specific apps
 npm run extension:dev  # Chrome Extension
+npm run website:dev   # Marketing Website
 npm run edge:dev      # Edge Functions
 ```
 
@@ -146,6 +165,7 @@ npm run extension:build
 ### Workspace Structure
 All packages use npm workspaces for dependency management:
 - `@clippy/extension` - Chrome Extension app
+- `@clippy/website` - Marketing website
 - `@clippy/cloudflare-edge` - Cloudflare Workers
 - `@clippy/supabase-edge` - Supabase Edge Functions
 - `@clippy/shared` - Shared utilities and types
