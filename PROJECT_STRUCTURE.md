@@ -35,7 +35,7 @@ clippy-mono/
 │   │   │   │   ├── storage/     # Storage adapters
 │   │   │   │   │   ├── ets_cache.ex
 │   │   │   │   │   ├── r2_storage.ex
-│   │   │   │   │   └── supabase.ex
+│   │   │   │   │   └── postgres.ex
 │   │   │   │   ├── ai/          # AI integrations
 │   │   │   │   │   ├── groq_client.ex
 │   │   │   │   │   ├── openai_client.ex
@@ -161,7 +161,8 @@ clippy-mono/
 - npm 10+
 - Elixir 1.15+
 - Erlang/OTP 26+
-- PostgreSQL 14+ (or Supabase account)
+- PostgreSQL 14+ (self-hosted)
+- FFmpeg 6.0+ (for video processing)
 
 ### Installation
 ```bash
@@ -171,9 +172,10 @@ npm install
 # Copy environment variables
 cp .env.example .env
 
-# Set up Supabase
-cd packages/database
-npm run migrate
+# Set up PostgreSQL database
+cd apps/clippy
+mix ecto.create
+mix ecto.migrate
 
 # Build packages
 npm run build
@@ -253,5 +255,5 @@ import { detectHighlights } from '@clippy/ai'
 - AppSignal or Sentry for error tracking
 - Phoenix LiveDashboard for real-time metrics
 - Observer for Erlang VM monitoring
-- Supabase Dashboard for database metrics
+- pgAdmin or DBeaver for database monitoring
 - Chrome Extension analytics (opt-in)

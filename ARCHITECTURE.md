@@ -50,7 +50,7 @@ Elixir Application (Single or Clustered)
    └── Cachex/ETS (hot storage)
         ↓
 External Services:
-   ├── Supabase (PostgreSQL + Auth)
+   ├── PostgreSQL (Self-hosted database)
    ├── Cloudflare R2 (cold storage)
    └── AI APIs (Groq/OpenAI)
 ```
@@ -256,7 +256,7 @@ clippy-mono/
 ✅ **Process supervision** (OTP)
 
 ### Still Use External Services For:
-- **Database**: Supabase PostgreSQL (data persistence)
+- **Database**: Self-hosted PostgreSQL (data persistence, full control)
 - **File Storage**: Cloudflare R2 (video storage)
 - **AI Processing**: Groq/OpenAI APIs (ML models)
 - **CDN**: Cloudflare (content delivery)
@@ -267,13 +267,13 @@ clippy-mono/
 
 ```
 Phoenix Servers (2x):     $200
-PostgreSQL (Supabase):    $25
+PostgreSQL (Self-hosted): $40  # VPS for database
 Cloudflare R2 Storage:    $50
 AI API Usage:             $300
 Monitoring:               $50
-Total:                    $625/month
+Total:                    $640/month
 
-Cost per user: ~$0.06/month
+Cost per user: ~$0.064/month
 ```
 
 ## 🚀 Implementation Guidelines

@@ -27,7 +27,7 @@ Clippy leverages Phoenix/Elixir's built-in capabilities and browser-first archit
 
 | 🏆 **Metric** | 💵 **Value** | 📈 **Impact** |
 |---------------|--------------|---------------|
-| **Cost per User** | $1.64-$3.59/month | Scales efficiently with growth |
+| **Cost per User** | $1.64-$3.51/month | Scales efficiently with growth |
 | **Profit Margin** | 28-67% | Strong margins at all scales |
 | **Break-even** | ~3,600 users | Achievable in early stage |
 | **1M User Valuation** | $300-600M | Based on 5-10x ARR multiple |
@@ -39,7 +39,7 @@ Clippy leverages Phoenix/Elixir's built-in capabilities and browser-first archit
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
      100 users  →  💰 $50/month
    1,000 users  →  💰 $150/month
-  10,000 users  →  💰 $8,911/month
+  10,000 users  →  💰 $8,112/month
  100,000 users  →  💰 $77,431/month
 1,000,000 users  →  💰 $613,440/month
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -91,8 +91,8 @@ Clippy leverages Phoenix/Elixir's built-in capabilities and browser-first archit
 #### Transcript Storage
 - Transcript size: ~200 KB/hour
 - 20 hours: 4 MB
-- Supabase free tier: 1 GB database
-- Cost: $0
+- Self-hosted PostgreSQL: No storage limits
+- Cost: $0 (included in VPS)
 
 ### ⚙️ Processing Costs
 
@@ -180,21 +180,18 @@ CDN Static Content (Cloudflare)
 
 #### PostgreSQL Database
 
-**Option A: Supabase (Managed)**
-Free tier includes:
-- 500 MB database
-- 1 GB storage 
-- 2 GB bandwidth
-- 50,000 MAU
-- Automated backups
+**Self-hosted PostgreSQL**
+- VPS hosting (DigitalOcean/Linode): $6-20/month
+- Direct Ecto integration with zero overhead
+- PgBouncer for connection pooling
+- Custom backup strategy with pg_dump
+- Full control over configuration
+- No user limits or API restrictions
 
-**Option B: Self-hosted PostgreSQL**
-- Managed via Ecto in Phoenix
-- Connection pooling built-in
-- Cost varies by hosting provider
-
-Cost: $0 (within free tier for < 100 users)
-Pro tier: $25/month (for 1,000+ users)
+Cost breakdown:
+- Development (< 100 users): $6/month (1GB RAM VPS)
+- Scale (1,000 users): $20/month (4GB RAM VPS)
+- Enterprise (10,000 users): $80/month (16GB RAM VPS with replication)
 
 #### Browser Storage (IndexedDB)
 - 5-minute rolling buffer: Client-side
@@ -413,12 +410,13 @@ Storage (Cloudflare R2)
 - Permanent clips: 10,000 users × 2 GB average = 20 TB
 - Total: 25.6 TB × $0.015/GB = $393/month
 
-Database (Supabase Team + Pooling)
+Database (Self-hosted PostgreSQL)
 - Database size: ~50 GB
-- Supabase Team plan: $599/month
-- PgBouncer pooling: $100/month
-- Additional compute: $300/month
-- Total: $999/month
+- Primary server (16GB RAM, 8 CPU): $120/month
+- Replica server (8GB RAM, 4 CPU): $60/month
+- Backup storage (S3): $20/month
+- PgBouncer included (no extra cost)
+- Total: $200/month
 
 AI Processing (With Queue Optimization)
 - Groq API: 3,500 paying users × 48 hours/month × $0.05 = $8,400/month
@@ -450,17 +448,17 @@ Team Costs
 #### Financial Summary (Phoenix/Elixir)
 - Phoenix Infrastructure: $180/month
 - Storage (R2): $393/month
-- Database: $999/month
+- Database (Self-hosted): $200/month
 - AI Processing: $6,300/month
 - CDN: $20/month
 - Website: $20/month
 - Monitoring: $999/month
-- Total Infrastructure: $8,911/month
+- Total Infrastructure: $8,112/month
 - Team Costs: $27,000/month
-- Total Monthly Costs: $35,911/month
-- Monthly Profit: $14,049/month
-- Profit Margin: 28.1%
-- **Cost per user: $3.59**
+- Total Monthly Costs: $35,112/month
+- Monthly Profit: $14,848/month
+- Profit Margin: 29.7%
+- **Cost per user: $3.51**
 
 ### Scale: 100,000 Users
 
@@ -596,17 +594,17 @@ Team Costs
 | Metric | 10K Users | 100K Users | 1M Users |
 |--------|-----------|------------|----------|
 | Revenue | $49,960 | $499,600 | $4,996,000 |
-| Infrastructure | $8,911 | $77,431 | $613,440 |
+| Infrastructure | $8,112 | $77,431 | $613,440 |
 | Team Costs | $27,000 | $145,000 | $1,025,000 |
-| Total Costs | $35,911 | $222,431 | $1,638,440 |
-| Profit | $14,049 | $277,169 | $3,357,560 |
-| Margin | 28.1% | 55.5% | 67.2% |
-| Cost per User | $3.59 | $2.22 | $1.64 |
+| Total Costs | $35,112 | $222,431 | $1,638,440 |
+| Profit | $14,848 | $277,169 | $3,357,560 |
+| Margin | 29.7% | 55.5% | 67.2% |
+| Cost per User | $3.51 | $2.22 | $1.64 |
 
 ## 📊 Key Scaling Insights
 
 ### 📈 Revenue Growth Projections
-- **10K users**: $600K annual revenue (28.1% margin)
+- **10K users**: $600K annual revenue (29.7% margin)
 - **100K users**: $6M annual revenue (55.5% margin)
 - **1M users**: $60M annual revenue (67.2% margin)
 
@@ -675,12 +673,12 @@ Team Costs
 
 ### Economics at Scale
 The platform maintains strong unit economics at scale:
-- **10K users**: $3.59 cost per user → $1.41 profit per user (40% paying = $12.56 avg revenue per user)
+- **10K users**: $3.51 cost per user → $1.48 profit per user (40% paying = $12.49 avg revenue per user)
 - **100K users**: $2.22 cost per user → $2.78 profit per user (40% paying = $12.49 avg revenue per user)
 - **1M users**: $1.64 cost per user → $3.36 profit per user (40% paying = $12.49 avg revenue per user)
 
 ### Sustainable Growth Model
-- **28.1% margin at 10K users** proves viability early
+- **29.7% margin at 10K users** proves viability early
 - **55.5% margin at 100K users** funds expansion
 - **67.2% margin at 1M users** demonstrates efficiency at scale
 

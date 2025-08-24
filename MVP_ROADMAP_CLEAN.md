@@ -12,7 +12,7 @@
 - [ ] Configure Git with SSH keys
 
 ### Service Accounts
-- [ ] Create PostgreSQL database (Supabase or self-hosted)
+- [ ] Set up VPS for PostgreSQL (DigitalOcean/Linode)
 - [ ] Create Cloudflare account (R2 storage and CDN)
 - [ ] Create Groq API account and get API key
 - [ ] Create OpenAI account as fallback
@@ -30,7 +30,7 @@
 - [ ] Navigate to monorepo root and initialize Phoenix app: `mix phx.new apps/clippy --no-html --no-assets --database postgres`
 - [ ] Move into Phoenix app directory: `cd apps/clippy`
 - [ ] Configure Phoenix for API-only mode in `config/config.exs`
-- [ ] Set up Ecto for Supabase PostgreSQL connection in `config/dev.exs` and `config/runtime.exs`
+- [ ] Set up Ecto for self-hosted PostgreSQL connection in `config/dev.exs` and `config/runtime.exs`
 - [ ] Run database setup: `mix ecto.create && mix ecto.migrate`
 - [ ] Configure Phoenix Channels for WebSocket communication
 - [ ] Set up Phoenix PubSub for real-time updates

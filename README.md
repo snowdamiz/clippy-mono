@@ -48,7 +48,7 @@ Chrome Extension (Vue 3 + WASM)
       └── Ecto (Database Layer)
         ↓
    External Services:
-      ├── PostgreSQL (Supabase/Self-hosted)
+      ├── PostgreSQL (Self-hosted)
       ├── Cloudflare R2 (Object Storage)
       └── AI APIs (Groq/OpenAI)
 ```
@@ -158,10 +158,10 @@ clippy-mono/
   - Built-in process supervision
   - Automatic backpressure handling
   - No external queue needed
-- **Database**: Supabase PostgreSQL
-  - Direct Ecto integration
-  - Connection pooling built-in
-  - Automated backups
+- **Database**: Self-hosted PostgreSQL
+  - Direct Ecto integration with zero overhead
+  - PgBouncer for connection pooling
+  - Custom backup strategy with pg_dump
 - **Cache Layers**:
   - L1: ETS (in-memory, microsecond access)
   - L2: Phoenix cache (distributed across cluster)
@@ -245,34 +245,36 @@ clippy-mono/
 Elixir 1.15+
 Erlang/OTP 26+
 Node.js 20+ (for Chrome extension and website)
-PostgreSQL 14+ (or Supabase account)
+PostgreSQL 14+ (self-hosted)
 FFmpeg 6.0+ (for video processing)
 
 # Optional but Recommended
-Redis (for additional caching)
+PgBouncer (for connection pooling)
 Docker (for containerized deployment)
 ```
 
 ### Installation
 
-#### 1. Database Setup Options
+#### 1. Database Setup
 
-**Option A: Supabase (Managed)**
-```bash
-# Create a Supabase project at https://supabase.com
-# Copy connection string from Settings > Database
-# Add to .env file
-```
-
-**Option B: Local PostgreSQL**
+**PostgreSQL Installation**
 ```bash
 # Install PostgreSQL locally
-sudo apt-get install postgresql-14  # Ubuntu/Debian
-brew install postgresql@14          # macOS
+sudo apt-get install postgresql-14 postgresql-contrib  # Ubuntu/Debian
+brew install postgresql@14                              # macOS
 
-# Create database user
+# Create database and user
 sudo -u postgres createuser -s clippy_user
 sudo -u postgres psql -c "ALTER USER clippy_user PASSWORD 'secure_password';"
+sudo -u postgres createdb clippy_db -O clippy_user
+
+# Enable required extensions
+sudo -u postgres psql -d clippy_db -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
+sudo -u postgres psql -d clippy_db -c "CREATE EXTENSION IF NOT EXISTS btree_gin;"
+
+# Optional: Install PgBouncer for connection pooling
+sudo apt-get install pgbouncer  # Ubuntu/Debian
+brew install pgbouncer          # macOS
 ```
 
 #### 2. Setup Phoenix Application
@@ -292,7 +294,8 @@ mix ecto.migrate
 
 # Create .env file
 cp .env.example .env
-# Add your Supabase/PostgreSQL credentials to .env
+# Add your PostgreSQL credentials to .env
+# DATABASE_URL="postgresql://clippy_user:secure_password@localhost/clippy_db"
 
 # Start Phoenix server
 mix phx.server
