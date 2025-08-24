@@ -12,8 +12,8 @@
 - [ ] Configure Git with SSH keys
 
 ### Service Accounts
-- [ ] Create Supabase account and project
-- [ ] Create Cloudflare account (R2 storage + Workers)
+- [ ] Create PostgreSQL database (Supabase or self-hosted)
+- [ ] Create Cloudflare account (R2 storage and CDN)
 - [ ] Create Groq API account and get API key
 - [ ] Create OpenAI account as fallback
 - [ ] Set up GitHub repository
@@ -35,55 +35,56 @@
 - [ ] Configure Phoenix Channels for WebSocket communication
 - [ ] Set up Phoenix PubSub for real-time updates
 
-### Database Setup (Supabase)
-- [ ] Create database schema:
+### Database Setup (PostgreSQL via Ecto)
+- [ ] Create Ecto migrations for database schema:
   - [ ] profiles table (user metadata)
   - [ ] recordings table (status tracking)
   - [ ] transcripts table (with segments)
   - [ ] clips table (relationships)
   - [ ] clip_exports table (platform versions)
-  - [ ] jobs table (async processing)
   - [ ] stream_archives table (48-hour TTL)
-- [ ] Enable Row Level Security on all tables
-- [ ] Create storage buckets (recordings, clips, exports, thumbnails)
-- [ ] Set up storage policies and CORS
-- [ ] Enable realtime for clips and jobs tables
-- [ ] Configure authentication (email/password)
+- [ ] Configure authentication system with Guardian
 - [ ] Create database indexes for performance
-- [ ] Set up pg_cron for 48-hour cleanup
+- [ ] Set up Quantum scheduler for 48-hour cleanup
+- [ ] Implement Ecto schemas and changesets
+- [ ] Create database seeds for development
 
 ### Processing Pipeline (GenStage)
 - [ ] Create video processing pipeline:
-  - [ ] GenStage producer for chunk reception
-  - [ ] Video processor consumer
-  - [ ] Backpressure handling
-  - [ ] Progress tracking with PubSub
+  - [ ] GenStage producer for chunk reception via Phoenix Channels
+  - [ ] Video processor consumer with FFmpeg NIFs
+  - [ ] Backpressure handling built into GenStage
+  - [ ] Progress tracking with Phoenix.PubSub
 - [ ] Create transcription pipeline:
-  - [ ] Audio extraction stage
-  - [ ] Whisper API integration
-  - [ ] Parallel processing
-  - [ ] Result caching in ETS
+  - [ ] Audio extraction with FFmpeg NIFs
+  - [ ] HTTPoison client for Groq/Whisper API
+  - [ ] Task.async_stream for parallel processing
+  - [ ] Result caching in ETS tables
 - [ ] Create AI analysis pipeline:
-  - [ ] AI analyzer stage
-  - [ ] Groq API client
-  - [ ] GPT-4 fallback logic
-  - [ ] Rate limiting with GenServer
+  - [ ] AI analyzer GenStage consumer
+  - [ ] HTTPoison client for Groq API
+  - [ ] OpenAI fallback with HTTPoison
+  - [ ] Rate limiting with Hammer library
 - [ ] Create clip generation pipeline:
-  - [ ] Clip detector stage
-  - [ ] Clip assembly logic
-  - [ ] Context fetching
-  - [ ] Parallel generation
+  - [ ] Clip detector GenStage consumer
+  - [ ] Clip assembly with FFmpeg NIFs
+  - [ ] Context fetching from ETS and Ecto
+  - [ ] Task.Supervisor for parallel generation
 - [ ] Create export pipeline:
-  - [ ] Platform formatter stage
-  - [ ] Format conversion
-  - [ ] CDN upload integration
-  - [ ] Batch processing
+  - [ ] Platform formatter GenStage consumer
+  - [ ] Format conversion with FFmpeg NIFs
+  - [ ] ExAws for R2/S3 upload
+  - [ ] Flow for batch processing
 
-### Phoenix Features
+### Phoenix Core Features
 - [ ] Configure Task.Supervisor for dynamic workers
-- [ ] Implement ETS caching with TTL
-- [ ] Set up telemetry and monitoring
-- [ ] Configure process supervision trees
+- [ ] Implement Cachex for distributed caching with TTL
+- [ ] Set up ETS tables for hot data storage
+- [ ] Configure telemetry with Telemetry.Metrics
+- [ ] Set up Phoenix.LiveDashboard for monitoring
+- [ ] Configure OTP supervision trees
+- [ ] Implement GenServer for stateful processes
+- [ ] Set up Phoenix.Presence for user tracking
 
 ## Phase 3: Chrome Extension
 
@@ -154,13 +155,11 @@
 - [ ] GET /api/clips/:id
 - [ ] GET /api/clips/:id/export/:platform
 
-### Edge Functions
-- [ ] Set up Cloudflare Workers project
-- [ ] Create API router with Hono
-- [ ] Implement authentication middleware
-- [ ] Set up CORS handling
-- [ ] Create rate limiting with KV
-- [ ] Add request validation with Zod
+### API Middleware (Phoenix)
+- [ ] Implement authentication plug
+- [ ] Set up CORS handling in Phoenix
+- [ ] Create rate limiting with Hammer
+- [ ] Add request validation with Ecto changesets
 
 ## Phase 5: AI Integration
 
@@ -262,31 +261,36 @@
 ## Phase 9: Cloud Storage & CDN
 
 ### Storage Setup
-- [ ] Configure Cloudflare R2 buckets
-- [ ] Set up Supabase Storage integration
-- [ ] Implement chunk upload system
-- [ ] Create progress tracking
-- [ ] Handle upload failures and retries
-- [ ] Implement multipart uploads
-- [ ] Configure Cloudflare CDN
+- [ ] Configure Cloudflare R2 buckets via ExAws
+- [ ] Implement chunk upload system with Phoenix Channels
+- [ ] Create progress tracking with Phoenix.PubSub
+- [ ] Handle upload failures with Task.Supervisor retry logic
+- [ ] Implement multipart uploads via ExAws.S3
+- [ ] Configure Cloudflare CDN for static content
+- [ ] Set up local file storage for development
 
 ## Phase 10: Testing & Optimization
 
 ### Testing
-- [ ] Write unit tests for Phoenix modules
-- [ ] Create integration tests for API
-- [ ] Implement E2E tests for extension
+- [ ] Write ExUnit tests for Phoenix modules
+- [ ] Create integration tests for Phoenix Channels
+- [ ] Test GenStage pipeline with ExUnit
+- [ ] Implement E2E tests for Chrome extension
 - [ ] Test across different streaming sites
 - [ ] Verify cross-browser compatibility
-- [ ] Load test with 100+ concurrent connections
+- [ ] Load test Phoenix with 10,000+ concurrent WebSocket connections
+- [ ] Test OTP supervision tree recovery
+- [ ] Verify ETS cache performance
 
 ### Performance Optimization
-- [ ] Optimize WASM loading
-- [ ] Implement lazy loading
-- [ ] Add request batching
-- [ ] Optimize database queries
-- [ ] Implement caching strategies
-- [ ] Reduce bundle size
+- [ ] Optimize WASM loading in browser
+- [ ] Implement lazy loading for extension UI
+- [ ] Use GenStage batching for efficient processing
+- [ ] Optimize Ecto queries with preloading
+- [ ] Implement Cachex distributed caching
+- [ ] Tune BEAM VM settings for concurrency
+- [ ] Configure connection pooling in Ecto
+- [ ] Reduce Chrome extension bundle size
 
 ### Cost Optimization
 - [ ] Implement adaptive quality based on activity
@@ -322,9 +326,11 @@
 - [ ] Can capture streaming content from Twitch/YouTube
 - [ ] Transcription accuracy >90%
 - [ ] Clip detection rate >80%
-- [ ] Processing latency <5 seconds
+- [ ] Processing latency <5 seconds via GenStage pipeline
 - [ ] Storage cost <$5/user/month
-- [ ] Extension size <10MB
-- [ ] Support 100+ concurrent users
-- [ ] 48-hour archive functionality working
+- [ ] Chrome extension size <10MB
+- [ ] Phoenix handles 10,000+ concurrent WebSocket connections
+- [ ] 48-hour archive with automatic cleanup via Quantum
 - [ ] All platform exports working (YouTube, TikTok, Twitter, Instagram)
+- [ ] Zero message loss with OTP supervision
+- [ ] Sub-second WebSocket response times

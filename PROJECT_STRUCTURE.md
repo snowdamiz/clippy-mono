@@ -159,8 +159,9 @@ clippy-mono/
 ### Prerequisites
 - Node.js 20+
 - npm 10+
-- Supabase CLI
-- Cloudflare Wrangler CLI
+- Elixir 1.15+
+- Erlang/OTP 26+
+- PostgreSQL 14+ (or Supabase account)
 
 ### Installation
 ```bash
@@ -186,7 +187,7 @@ npm run dev
 # Or run specific apps
 npm run extension:dev  # Chrome Extension
 npm run website:dev   # Marketing Website
-npm run edge:dev      # Edge Functions
+mix phx.server        # Phoenix API (from apps/clippy)
 ```
 
 ### Building
@@ -221,8 +222,8 @@ import { detectHighlights } from '@clippy/ai'
 - `tsconfig.json` - Root TypeScript configuration
 - `.eslintrc.json` - ESLint rules
 - `.prettierrc` - Code formatting rules
-- `wrangler.toml` - Cloudflare Workers config
 - `manifest.json` - Chrome Extension manifest
+- `mix.exs` - Phoenix application configuration
 
 ## 🧪 Testing Strategy
 
@@ -243,13 +244,14 @@ import { detectHighlights } from '@clippy/ai'
 
 - All API keys stored in environment variables
 - Content Security Policy configured for extension
-- CORS properly configured for edge functions
-- Input validation using Zod schemas
-- Rate limiting on all API endpoints
+- CORS properly configured in Phoenix
+- Input validation using Ecto changesets
+- Rate limiting with Hammer on all API endpoints
 
 ## 📊 Monitoring
 
-- Sentry for error tracking
-- Cloudflare Analytics for edge functions
+- AppSignal or Sentry for error tracking
+- Phoenix LiveDashboard for real-time metrics
+- Observer for Erlang VM monitoring
 - Supabase Dashboard for database metrics
 - Chrome Extension analytics (opt-in)
