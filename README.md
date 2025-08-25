@@ -2,23 +2,39 @@
 
 ## 🎯 Project Overview
 
-Clippy is a real-time stream clipping tool that processes live streams as they happen, automatically identifying and creating highlight clips in real-time. Using smart tab recording with automatic focus detection, the system continuously analyzes the stream, generating clips of noteworthy moments on-the-fly, ready for various social media platforms.
+Clippy is a real-time stream clipping platform consisting of three main components:
+
+1. **Chrome Extension**: Lightweight recording tool for capturing streams and monitoring real-time processing
+2. **Web Dashboard**: Full-featured Phoenix LiveView application for clip management, editing, and account settings
+3. **Marketing Website**: Landing page to convert visitors into users
+
+The Chrome extension focuses on recording and real-time notifications, while the web dashboard serves as the primary interface for managing clips, viewing analytics, and configuring settings.
 
 ## 🚀 MVP Features
 
-- **Smart Tab Recording**: Capture streaming content with automatic video region detection
-- **Real-Time Processing**: Process stream chunks as they arrive (10-30 second windows)
-- **Continuous Transcription**: Rolling transcription using Whisper AI on audio chunks
-- **Live Clip Detection**: AI continuously analyzes recent transcript segments for highlights
-- **Instant Clip Generation**: Automatically create clips when highlights are detected
-- **Dual Buffer System**:
-  - 5-minute rolling buffer for immediate clip generation
-  - 48-hour raw storage for extended context and retroactive clipping
-- **Context-Aware AI**: References historical conversations for better clip detection
-- **Smart Clip Generation**: Include context from previous streams when relevant
-- **Multi-Platform Export**: Pre-formatted clips ready for social media platforms
-- **Real-Time Notifications**: Alert users when new clips are generated
-- **Auto-Cleanup**: Automatic deletion of raw streams after 48 hours
+### Chrome Extension (Lightweight Recording)
+- **Smart Tab Recording**: One-click capture with automatic video region detection
+- **Local WASM Processing**: Client-side video processing with FFmpeg.wasm and Whisper.cpp
+- **Real-Time Monitoring**: Live stats and clip notifications
+- **Browser-Based Transcription**: Optional local transcription to reduce server load
+- **Quick Actions**: Start/stop recording, view recent clips
+- **Minimal Interface**: Focused on recording without clutter
+
+### Web Dashboard (Primary User Interface)
+- **Comprehensive Clip Gallery**: Browse, search, and manage all clips
+- **Advanced Editing**: Trim, caption, and enhance clips
+- **Multi-Platform Export**: Format and export to YouTube, TikTok, Instagram, Twitter
+- **Analytics Dashboard**: View performance metrics and insights
+- **Account Management**: Settings, billing, team management
+- **48-Hour Archive**: Access and search historical content
+- **Batch Operations**: Export multiple clips at once
+
+### Backend Processing
+- **Real-Time Processing**: Process stream chunks as they arrive
+- **Continuous Transcription**: Rolling transcription using Whisper AI
+- **Context-Aware AI**: References 48 hours of historical context
+- **Smart Clip Generation**: Automatic highlight detection
+- **Auto-Cleanup**: Automatic deletion after retention period
 
 ## 🏗️ System Architecture (Phoenix/Elixir)
 
@@ -57,12 +73,13 @@ Chrome Extension (Vue 3 + WASM)
 
 ```
 1. User activates recording → Browser capture starts
-2. Browser Processing:
+2. Browser Processing (WASM-powered):
    a. Capture tab stream via chrome.tabCapture API
    b. Track video element position for smart cropping
-   c. Local processing with WebCodecs/WASM (optional)
-   d. Stream chunks via Phoenix Channels (WebSocket)
-   e. Maintain 5-min IndexedDB buffer (fallback)
+   c. FFmpeg.wasm for video compression and clipping
+   d. Whisper.cpp WASM for local transcription (free tier)
+   e. Stream processed chunks via Phoenix Channels (WebSocket)
+   f. Maintain 5-min IndexedDB buffer with WASM-processed clips
    
 3. Phoenix Application Receives Stream:
    - Phoenix Channels handle WebSocket connections
@@ -98,7 +115,7 @@ Chrome Extension (Vue 3 + WASM)
 ```
 clippy-mono/
 ├── apps/
-│   ├── chrome-extension/      # Vue 3 Chrome extension
+│   ├── chrome-extension/      # Vue 3 Chrome extension (recording)
 │   ├── clippy/               # Phoenix/Elixir application
 │   │   ├── lib/
 │   │   │   ├── clippy/      # Business logic
@@ -109,7 +126,12 @@ clippy-mono/
 │   │   │   └── clippy_web/   # Phoenix web layer
 │   │   │       ├── channels/    # WebSocket handlers
 │   │   │       ├── controllers/ # REST API
-│   │   │       └── live/        # LiveView UI
+│   │   │       └── live/        # LiveView dashboard pages
+│   │   │           ├── dashboard_live.ex    # Main dashboard
+│   │   │           ├── clips_live/          # Clip management
+│   │   │           ├── analytics_live/      # Analytics views
+│   │   │           ├── settings_live/       # User settings
+│   │   │           └── components/          # Reusable LiveView components
 │   │   └── config/           # Environment configs
 │   └── website/              # Next.js marketing website
 │
@@ -118,7 +140,7 @@ clippy-mono/
 │   └── wasm/                # WebAssembly modules
 │
 └── infrastructure/
-    ├── docker/              # Container config (single Dockerfile)
+    ├── docker/              # Container config
     └── deployment/          # Deployment scripts
 ```
 
@@ -132,13 +154,31 @@ clippy-mono/
 - **Components**: Radix UI + Heroicons
 - **Performance**: 95+ Lighthouse score target
 
-### Chrome Extension
+### Chrome Extension (WASM-Powered Recording)
 - **Framework**: Vue 3 + TypeScript
+- **Purpose**: Recording and local processing
 - **Recording**: chrome.tabCapture API
-- **Processing**: WebAssembly (Whisper.cpp, FFmpeg with smart cropping)
+- **WASM Modules**:
+  - FFmpeg.wasm: Video compression, clipping, format conversion
+  - Whisper.cpp WASM: Local transcription (free tier)
+  - WebCodecs API: Hardware-accelerated video encoding
 - **Build Tool**: Vite
-- **Storage**: IndexedDB for 5-min buffer
-- **APIs**: MediaRecorder, WebCodecs, Chrome Extension APIs
+- **Storage**: IndexedDB for 5-min buffer of processed clips
+- **Communication**: WebSocket to Phoenix backend (optimized chunks)
+
+### Web Dashboard (Phoenix LiveView)
+- **Framework**: Phoenix LiveView
+- **Purpose**: Full clip management and analytics
+- **UI Components**: Surface UI or custom LiveView components
+- **Styling**: Tailwind CSS
+- **Real-time Updates**: LiveView's built-in WebSocket
+- **Features**:
+  - Clip gallery with search and filters
+  - Video player with editing controls
+  - Export management interface
+  - Analytics dashboards
+  - Account settings
+  - Team collaboration tools
 
 ### Backend Processing
 - **Core**: Phoenix/Elixir application server
@@ -413,30 +453,37 @@ config :clippy, Clippy.Repo,
 
 ## 🎯 MVP Milestones
 
-### Phase 1: Real-Time Streaming (Week 1-2)
-- [ ] Chrome extension with Vue 3
+### Phase 1: Core Infrastructure (Week 1-2)
+- [ ] Chrome extension with Vue 3 setup
 - [ ] Tab capture implementation
-- [ ] WebSocket streaming of chunks
-- [ ] Rolling buffer implementation
+- [ ] FFmpeg.wasm integration for video processing
+- [ ] Whisper.cpp WASM integration for transcription
+- [ ] IndexedDB setup for local clip storage
+- [ ] WebSocket streaming to Phoenix
+- [ ] Basic LiveView dashboard setup
+- [ ] Authentication system
 
-### Phase 2: Dual Storage & Processing (Week 3-4)
+### Phase 2: Processing Pipeline (Week 3-4)
+- [ ] GenStage pipeline setup
 - [ ] Real-time audio extraction
 - [ ] Streaming Whisper AI integration
 - [ ] Dual buffer implementation (5min + 48hr)
-- [ ] Continuous transcript generation
 - [ ] Auto-cleanup scheduler
 
-### Phase 3: Context-Aware AI (Week 5-6)
-- [ ] Historical context querying
-- [ ] Enhanced AI detection with context
-- [ ] Retroactive clip generation
-- [ ] Cross-stream reference detection
-- [ ] Smart flashback inclusion
+### Phase 3: Web Dashboard Development (Week 5-6)
+- [ ] LiveView clip gallery with search/filters
+- [ ] Video player with preview controls
+- [ ] Export interface for multiple platforms
+- [ ] Analytics dashboard
+- [ ] Account settings page
+- [ ] Team collaboration features
 
-### Phase 4: Export & Notifications (Week 7-8)
-- [ ] Auto-format for platforms
+### Phase 4: AI & Export Features (Week 7-8)
+- [ ] Context-aware AI detection
+- [ ] Cross-stream reference detection
+- [ ] Platform-specific formatting
+- [ ] Batch export functionality
 - [ ] Real-time notifications in extension
-- [ ] Clip dashboard in extension
 - [ ] Download & share functionality
 
 ## 💰 Pricing Tiers
@@ -474,16 +521,16 @@ config :clippy, Clippy.Repo,
 - Custom branding options
 
 ## 🔮 Future Enhancements
-- Web dashboard for clip management
 - Custom AI models for specific games/streamers
-- Automated posting to social media
-- Multi-stream support (multiple tabs)
-- Team/organization accounts
-- Advanced editing tools
+- Automated posting to social media platforms
+- Multi-stream support (multiple tabs simultaneously)
+- Advanced video editing tools (transitions, effects)
 - Community marketplace for AI detection models
 - Twitch/YouTube chat integration for better context
 - Viewer reaction tracking (chat velocity, emotes)
-- Collaborative clipping (multiple users, same stream)
+- Mobile app for clip management on the go
+- Webhooks and API for third-party integrations
+- White-label solutions for enterprises
 
 ## 📄 License
 
