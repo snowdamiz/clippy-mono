@@ -12,7 +12,7 @@
 - [ ] Configure Git with SSH keys
 
 ### Service Accounts
-- [ ] Set up VPS for PostgreSQL (DigitalOcean/Linode)
+- [ ] Create Fly.io account and install CLI
 - [ ] Create Cloudflare account (R2 storage and CDN)
 - [ ] Create Groq API account and get API key
 - [ ] Create OpenAI account as fallback
@@ -30,12 +30,16 @@
 - [ ] Navigate to monorepo root and initialize Phoenix app: `mix phx.new apps/clippy --no-html --no-assets --database postgres`
 - [ ] Move into Phoenix app directory: `cd apps/clippy`
 - [ ] Configure Phoenix for API-only mode in `config/config.exs`
-- [ ] Set up Ecto for self-hosted PostgreSQL connection in `config/dev.exs` and `config/runtime.exs`
-- [ ] Run database setup: `mix ecto.create && mix ecto.migrate`
+- [ ] Set up Ecto for local PostgreSQL in dev and Fly.io PostgreSQL in prod
+- [ ] Configure DATABASE_URL for Fly.io deployment
+- [ ] Run database setup locally: `mix ecto.create && mix ecto.migrate`
 - [ ] Configure Phoenix Channels for WebSocket communication
 - [ ] Set up Phoenix PubSub for real-time updates
 
 ### Database Setup (PostgreSQL via Ecto)
+- [ ] Set up local PostgreSQL for development
+- [ ] Create Fly.io PostgreSQL cluster for production: `fly postgres create`
+- [ ] Attach database to app: `fly postgres attach`
 - [ ] Create Ecto migrations for database schema:
   - [ ] profiles table (user metadata)
   - [ ] recordings table (status tracking)
@@ -301,12 +305,19 @@
 
 ## Phase 11: Production Deployment
 
-### Infrastructure
-- [ ] Deploy Phoenix cluster (Fly.io or Render)
-- [ ] Configure distributed Erlang cluster
-- [ ] Set up monitoring (AppSignal/Sentry)
-- [ ] Configure production environment variables
-- [ ] Set up backup systems
+### Fly.io Deployment
+- [ ] Initialize Fly.io app: `fly launch --name clippy-app`
+- [ ] Configure fly.toml for Phoenix application
+- [ ] Set up Fly.io PostgreSQL: `fly postgres create --name clippy-db`
+- [ ] Attach database to app: `fly postgres attach clippy-db`
+- [ ] Configure secrets: `fly secrets set SECRET_KEY_BASE PHX_HOST`
+- [ ] Deploy application: `fly deploy`
+- [ ] Run migrations: `fly ssh console -c "/app/bin/clippy eval 'Clippy.Release.migrate'"`
+- [ ] Scale horizontally: `fly scale count 2`
+- [ ] Configure multi-region if needed: `fly regions add`
+- [ ] Set up Fly.io built-in monitoring
+- [ ] Configure GitHub Actions for CI/CD
+- [ ] Set up database backups: `fly postgres backup create`
 
 ### Chrome Web Store
 - [ ] Prepare store listing

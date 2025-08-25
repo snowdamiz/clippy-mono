@@ -89,11 +89,16 @@ clippy-mono/
 │
 ├── infrastructure/           # Infrastructure configuration
 │   ├── docker/              # Docker configurations
-│   │   ├── Dockerfile       # Phoenix app container
-│   │   └── docker-compose.yml  # Local development
+│   │   ├── Dockerfile       # Phoenix app container for Fly.io
+│   │   └── docker-compose.yml  # Local development only
+│   ├── fly/                 # Fly.io deployment configs
+│   │   ├── fly.toml         # Main Fly.io configuration
+│   │   ├── fly.staging.toml # Staging environment config
+│   │   └── .dockerignore    # Docker build exclusions
 │   └── deployment/          # Deployment scripts
-│       ├── fly.toml         # Fly.io config
-│       └── release.sh      # Release script
+│       ├── deploy.sh        # Fly.io deployment script
+│       ├── migrate.sh       # Database migration script
+│       └── rollback.sh      # Rollback script
 │
 ├── scripts/                  # Build and utility scripts
 ├── config/                   # Configuration files
@@ -161,8 +166,9 @@ clippy-mono/
 - npm 10+
 - Elixir 1.15+
 - Erlang/OTP 26+
-- PostgreSQL 14+ (self-hosted)
+- PostgreSQL 14+ (for local development)
 - FFmpeg 6.0+ (for video processing)
+- Fly.io CLI (for deployment)
 
 ### Installation
 ```bash
@@ -172,10 +178,13 @@ npm install
 # Copy environment variables
 cp .env.example .env
 
-# Set up PostgreSQL database
+# Set up local PostgreSQL database
 cd apps/clippy
 mix ecto.create
 mix ecto.migrate
+
+# Or connect to Fly.io PostgreSQL for staging
+fly postgres connect -a clippy-db
 
 # Build packages
 npm run build
@@ -199,6 +208,34 @@ npm run build
 
 # Build specific app
 npm run extension:build
+
+# Build for production deployment
+cd apps/clippy
+mix deps.get --only prod
+mix compile
+mix assets.deploy
+mix release
+```
+
+### Deployment to Fly.io
+```bash
+# Deploy Phoenix app to Fly.io
+cd apps/clippy
+fly deploy
+
+# Deploy to staging
+fly deploy --config fly.staging.toml
+
+# Run database migrations on production
+fly ssh console -a clippy-app
+/app/bin/clippy eval "Clippy.Release.migrate"
+
+# Scale horizontally
+fly scale count 3 --app clippy-app
+
+# Monitor deployment
+fly logs --app clippy-app
+fly status --app clippy-app
 ```
 
 ## 📦 Package Dependencies
@@ -252,8 +289,9 @@ import { detectHighlights } from '@clippy/ai'
 
 ## 📊 Monitoring
 
-- AppSignal or Sentry for error tracking
+- Fly.io built-in monitoring and metrics
 - Phoenix LiveDashboard for real-time metrics
-- Observer for Erlang VM monitoring
-- pgAdmin or DBeaver for database monitoring
+- Observer for Erlang VM monitoring (via Fly SSH)
+- Fly.io PostgreSQL monitoring dashboard
+- Sentry for error tracking (optional)
 - Chrome Extension analytics (opt-in)

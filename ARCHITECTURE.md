@@ -50,7 +50,7 @@ Elixir Application (Single or Clustered)
    └── Cachex/ETS (hot storage)
         ↓
 External Services:
-   ├── PostgreSQL (Self-hosted database)
+   ├── PostgreSQL (Fly.io Managed)
    ├── Cloudflare R2 (cold storage)
    └── AI APIs (Groq/OpenAI)
 ```
@@ -60,8 +60,8 @@ External Services:
 ### Core System Components
 ```yaml
 Primary Components:
-- Phoenix Application (Elixir)
-- PostgreSQL (Supabase)
+- Phoenix Application (Elixir on Fly.io)
+- PostgreSQL (Fly.io Managed Database)
 - File Storage (Cloudflare R2)
 - AI APIs (Groq/OpenAI)
 
@@ -213,8 +213,9 @@ clippy-mono/
 ### Phase 1: Core Setup (Week 1)
 1. Initialize Phoenix application
 2. Set up WebSocket channels
-3. Configure Ecto with Supabase
-4. Implement authentication
+3. Configure Ecto with Fly.io PostgreSQL
+4. Deploy to Fly.io with managed database
+5. Implement authentication
 
 ### Phase 2: Processing Pipeline (Week 2)
 1. Build GenStage pipeline
@@ -256,7 +257,7 @@ clippy-mono/
 ✅ **Process supervision** (OTP)
 
 ### Still Use External Services For:
-- **Database**: Self-hosted PostgreSQL (data persistence, full control)
+- **Database**: Fly.io Managed PostgreSQL (automatic backups, failover, scaling)
 - **File Storage**: Cloudflare R2 (video storage)
 - **AI Processing**: Groq/OpenAI APIs (ML models)
 - **CDN**: Cloudflare (content delivery)
@@ -266,14 +267,14 @@ clippy-mono/
 ### Monthly Costs at Scale (10,000 Users)
 
 ```
-Phoenix Servers (2x):     $200
-PostgreSQL (Self-hosted): $40  # VPS for database
+Fly.io App Servers (2x):  $150  # shared-cpu-1x instances
+Fly.io PostgreSQL:        $55   # 1GB RAM, 10GB storage
 Cloudflare R2 Storage:    $50
 AI API Usage:             $300
-Monitoring:               $50
-Total:                    $640/month
+Monitoring (built-in):    $0    # Fly.io includes monitoring
+Total:                    $555/month
 
-Cost per user: ~$0.064/month
+Cost per user: ~$0.056/month
 ```
 
 ## 🚀 Implementation Guidelines

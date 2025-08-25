@@ -180,18 +180,18 @@ CDN Static Content (Cloudflare)
 
 #### PostgreSQL Database
 
-**Self-hosted PostgreSQL**
-- VPS hosting (DigitalOcean/Linode): $6-20/month
+**Fly.io Managed PostgreSQL**
+- Fly.io Postgres cluster with automatic backups
 - Direct Ecto integration with zero overhead
-- PgBouncer for connection pooling
-- Custom backup strategy with pg_dump
-- Full control over configuration
+- Built-in connection pooling
+- Automated daily backups with point-in-time recovery
+- Automatic failover and high availability
 - No user limits or API restrictions
 
 Cost breakdown:
-- Development (< 100 users): $6/month (1GB RAM VPS)
-- Scale (1,000 users): $20/month (4GB RAM VPS)
-- Enterprise (10,000 users): $80/month (16GB RAM VPS with replication)
+- Development (< 100 users): $15/month (256MB RAM, 1GB storage)
+- Scale (1,000 users): $25/month (1GB RAM, 10GB storage)
+- Enterprise (10,000 users): $55/month (2GB RAM, 40GB storage with HA)
 
 #### Browser Storage (IndexedDB)
 - 5-minute rolling buffer: Client-side
@@ -389,13 +389,14 @@ Cost breakdown:
 
 #### Infrastructure Costs (Phoenix/Elixir Architecture)
 
-**Phoenix Application Infrastructure**
-- Phoenix cluster (2 nodes, 4 CPU, 8GB RAM each on DigitalOcean/Linode): $160/month
-- Load balancer: $20/month
+**Phoenix Application Infrastructure (Fly.io)**
+- Fly.io app instances (2x shared-cpu-1x, 512MB RAM): $30/month
+- Automatic load balancing: Included
 - Built-in ETS cache: Included
 - Built-in process supervision: Included
 - Built-in WebSocket handling: Included
-- Total Phoenix: $180/month
+- Automatic SSL/TLS: Included
+- Total Phoenix: $30/month
 
 **No Additional Infrastructure Needed:**
 - ✅ Queue system: Built into GenStage
@@ -410,13 +411,13 @@ Storage (Cloudflare R2)
 - Permanent clips: 10,000 users × 2 GB average = 20 TB
 - Total: 25.6 TB × $0.015/GB = $393/month
 
-Database (Self-hosted PostgreSQL)
+Database (Fly.io Managed PostgreSQL)
 - Database size: ~50 GB
-- Primary server (16GB RAM, 8 CPU): $120/month
-- Replica server (8GB RAM, 4 CPU): $60/month
-- Backup storage (S3): $20/month
-- PgBouncer included (no extra cost)
-- Total: $200/month
+- Fly.io PostgreSQL (2GB RAM, 40GB storage): $55/month
+- Automatic replication in same region: Included
+- Automated backups: Included
+- Built-in connection pooling: Included
+- Total: $55/month
 
 AI Processing (With Queue Optimization)
 - Groq API: 3,500 paying users × 48 hours/month × $0.05 = $8,400/month
@@ -445,20 +446,20 @@ Team Costs
 - DevOps/SRE (2 FTE): $15,000/month
 - On-call rotation: $2,000/month
 
-#### Financial Summary (Phoenix/Elixir)
-- Phoenix Infrastructure: $180/month
+#### Financial Summary (Fly.io Deployment)
+- Phoenix Infrastructure (Fly.io): $30/month
 - Storage (R2): $393/month
-- Database (Self-hosted): $200/month
+- Database (Fly.io PostgreSQL): $55/month
 - AI Processing: $6,300/month
 - CDN: $20/month
 - Website: $20/month
-- Monitoring: $999/month
-- Total Infrastructure: $8,112/month
+- Monitoring (Fly.io built-in + extras): $500/month
+- Total Infrastructure: $7,318/month
 - Team Costs: $27,000/month
-- Total Monthly Costs: $35,112/month
-- Monthly Profit: $14,848/month
-- Profit Margin: 29.7%
-- **Cost per user: $3.51**
+- Total Monthly Costs: $34,318/month
+- Monthly Profit: $15,642/month
+- Profit Margin: 31.3%
+- **Cost per user: $3.43**
 
 ### Scale: 100,000 Users
 
@@ -470,22 +471,23 @@ Team Costs
 
 #### Infrastructure Costs
 
-**Phoenix Application Infrastructure (100K scale)**
-- Phoenix cluster (8 nodes, 8 CPU, 16GB RAM each): **$2,560/month**
-- Load balancers (multi-region): **$100/month**
-- Total Phoenix: **$2,660/month**
+**Phoenix Application Infrastructure (100K scale on Fly.io)**
+- Fly.io app instances (8x shared-cpu-2x, 1GB RAM each): **$240/month**
+- Multi-region deployment: **$100/month** (additional regions)
+- Automatic load balancing: Included
+- Total Phoenix: **$340/month**
 
 **Storage (Cloudflare R2 Enterprise)**
 - Video storage: 40,000 paying users × 1.6 GB = 64 TB
 - Permanent clips: 100,000 users × 3 GB average = 300 TB
 - Total: 364 TB × $0.012/GB (volume pricing) = **$4,471/month**
 
-**Database (PostgreSQL Cluster)**
+**Database (Fly.io PostgreSQL Cluster)**
 - Database size: ~500 GB
-- Managed PostgreSQL (AWS RDS/Google Cloud SQL): **$2,000/month**
-- Read replicas (2): **$1,000/month**
-- Backup storage: **$200/month**
-- Total Database: **$3,200/month**
+- Fly.io PostgreSQL primary (8GB RAM, 500GB storage): **$385/month**
+- Read replicas (2 regions): **$770/month**
+- Automated backups: Included
+- Total Database: **$1,155/month**
 
 **AI Processing (Groq API Enterprise)**
 - 40,000 paying users × 48 hours/month × $0.05 = $96,000
@@ -512,18 +514,18 @@ Team Costs
 - DevOps team (2 FTE): **$30,000/month**
 
 #### Financial Summary
-- Phoenix Infrastructure: $2,660/month
+- Phoenix Infrastructure (Fly.io): $340/month
 - Storage: $4,471/month
-- Database: $3,200/month
+- Database (Fly.io): $1,155/month
 - AI Processing: $62,400/month
 - CDN: $2,000/month
 - Website & Support: $2,700/month
-- Total Infrastructure: $77,431/month
+- Total Infrastructure: $73,066/month
 - Team Costs: $145,000/month
-- Total Monthly Costs: $222,431/month
-- Monthly Profit: $277,169/month
-- Profit Margin: 55.5%
-- **Cost per user: $2.22**
+- Total Monthly Costs: $218,066/month
+- Monthly Profit: $281,534/month
+- Profit Margin: 56.4%
+- **Cost per user: $2.18**
 
 ### Scale: 1,000,000 Users
 
@@ -541,10 +543,10 @@ Team Costs
 - Multi-region replication: +50% = 8.46 PB total
 - Custom negotiated rate: $0.008/GB = **$69,222/month**
 
-**Database (Custom PostgreSQL Cluster)**
-- Multi-region PostgreSQL clusters on AWS/GCP
-- 10 TB storage, high availability
-- Managed service + DBA team: **$25,000/month**
+**Database (Fly.io PostgreSQL at Scale)**
+- Multi-region Fly.io PostgreSQL clusters
+- 10 TB storage across regions, high availability
+- Fly.io managed with dedicated support: **$15,000/month**
 
 **AI Processing (Multi-Provider Strategy)**
 - Groq API: 200,000 users × 48 hours/month × $0.03 (volume) = **$288,000/month**
@@ -553,7 +555,7 @@ Team Costs
 - Total AI: **$428,000/month**
 
 **Global Infrastructure**
-- Phoenix clusters (multi-region): **$15,000/month**
+- Fly.io Phoenix clusters (multi-region, 50+ instances): **$5,000/month**
 - Cloudflare Enterprise CDN: **$10,000/month**
 - Additional CDN (Fastly): **$5,000/month**
 

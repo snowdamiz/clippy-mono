@@ -198,10 +198,11 @@ clippy-mono/
   - Built-in process supervision
   - Automatic backpressure handling
   - No external queue needed
-- **Database**: Self-hosted PostgreSQL
+- **Database**: Fly.io Managed PostgreSQL
   - Direct Ecto integration with zero overhead
-  - PgBouncer for connection pooling
-  - Custom backup strategy with pg_dump
+  - Built-in connection pooling
+  - Automated backups and failover
+  - Single-region or multi-region replication
 - **Cache Layers**:
   - L1: ETS (in-memory, microsecond access)
   - L2: Phoenix cache (distributed across cluster)
@@ -285,39 +286,52 @@ clippy-mono/
 Elixir 1.15+
 Erlang/OTP 26+
 Node.js 20+ (for Chrome extension and website)
-PostgreSQL 14+ (self-hosted)
 FFmpeg 6.0+ (for video processing)
+PostgreSQL 14+ (for local development)
 
-# Optional but Recommended
-PgBouncer (for connection pooling)
-Docker (for containerized deployment)
+# Deployment Requirements
+Fly.io CLI (for deployment)
+Git (for version control)
 ```
 
-### Installation
+### Local Development Setup
 
-#### 1. Database Setup
-
-**PostgreSQL Installation**
+#### 1. Install Fly.io CLI
 ```bash
-# Install PostgreSQL locally
-sudo apt-get install postgresql-14 postgresql-contrib  # Ubuntu/Debian
-brew install postgresql@14                              # macOS
+# macOS
+brew install flyctl
 
-# Create database and user
-sudo -u postgres createuser -s clippy_user
-sudo -u postgres psql -c "ALTER USER clippy_user PASSWORD 'secure_password';"
-sudo -u postgres createdb clippy_db -O clippy_user
+# Linux
+curl -L https://fly.io/install.sh | sh
 
-# Enable required extensions
-sudo -u postgres psql -d clippy_db -c "CREATE EXTENSION IF NOT EXISTS pg_trgm;"
-sudo -u postgres psql -d clippy_db -c "CREATE EXTENSION IF NOT EXISTS btree_gin;"
+# Windows
+powershell -Command "iwr https://fly.io/install.ps1 -useb | iex"
 
-# Optional: Install PgBouncer for connection pooling
-sudo apt-get install pgbouncer  # Ubuntu/Debian
-brew install pgbouncer          # macOS
+# Authenticate with Fly.io
+fly auth signup  # or fly auth login if you have an account
 ```
 
-#### 2. Setup Phoenix Application
+#### 2. Database Setup (Local Development)
+```bash
+# For local development, use PostgreSQL locally
+sudo apt-get install postgresql-14  # Ubuntu/Debian
+brew install postgresql@14          # macOS
+
+# Start PostgreSQL service
+sudo service postgresql start  # Linux
+brew services start postgresql@14  # macOS
+
+# Create local development database and user
+sudo -u postgres psql << EOF
+CREATE USER clippy_user WITH PASSWORD 'localdev123';
+CREATE DATABASE clippy_dev OWNER clippy_user;
+CREATE DATABASE clippy_test OWNER clippy_user;
+GRANT ALL PRIVILEGES ON DATABASE clippy_dev TO clippy_user;
+GRANT ALL PRIVILEGES ON DATABASE clippy_test TO clippy_user;
+EOF
+```
+
+#### 3. Setup Phoenix Application
 ```bash
 # Clone repository
 git clone https://github.com/yourusername/clippy-mono.git
@@ -332,10 +346,20 @@ mix deps.get
 mix ecto.create
 mix ecto.migrate
 
-# Create .env file
-cp .env.example .env
-# Add your PostgreSQL credentials to .env
-# DATABASE_URL="postgresql://clippy_user:secure_password@localhost/clippy_db"
+# Configure database connection
+export DATABASE_URL="postgresql://clippy_user:localdev123@localhost/clippy_dev"
+
+# Or create config/dev.secret.exs for local development
+cat > config/dev.secret.exs << 'EOF'
+import Config
+
+config :clippy, Clippy.Repo,
+  username: "clippy_user",
+  password: "localdev123",
+  hostname: "localhost",
+  database: "clippy_dev",
+  pool_size: 10
+EOF
 
 # Start Phoenix server
 mix phx.server
@@ -451,7 +475,295 @@ config :clippy, Clippy.Repo,
   queue_interval: 1000
 ```
 
-## 🎯 MVP Milestones
+## 🚀 Deployment to Fly.io
+
+### Initial Setup
+
+#### 1. Create Fly.io Application
+```bash
+cd apps/clippy
+
+# Initialize Fly.io app (one-time setup)
+fly launch --name clippy-app --region lax \
+  --no-deploy \
+  --org personal
+
+# This creates:
+# - fly.toml configuration file
+# - Dockerfile for Phoenix deployment
+# - Release configuration
+```
+
+#### 2. Setup Managed PostgreSQL Database
+```bash
+# Create a PostgreSQL cluster on Fly.io
+fly postgres create --name clippy-db \
+  --region lax \
+  --initial-cluster-size 1 \
+  --vm-size shared-cpu-1x \
+  --volume-size 10
+
+# Attach database to your app (creates DATABASE_URL secret)
+fly postgres attach clippy-db --app clippy-app
+
+# Get connection string for verification
+fly postgres connect -a clippy-db
+```
+
+#### 3. Configure Secrets and Environment Variables
+```bash
+# Set required secrets for production
+fly secrets set SECRET_KEY_BASE="$(mix phx.gen.secret)" \
+  PHX_HOST="clippy-app.fly.dev" \
+  GROQ_API_KEY="your-groq-api-key" \
+  OPENAI_API_KEY="your-openai-key" \
+  R2_ACCESS_KEY="your-r2-access-key" \
+  R2_SECRET_KEY="your-r2-secret-key" \
+  R2_BUCKET="your-bucket-name" \
+  R2_ENDPOINT="https://your-account.r2.cloudflarestorage.com"
+
+# Verify secrets are set
+fly secrets list
+```
+
+#### 4. Configure fly.toml for Phoenix
+```toml
+# fly.toml
+app = "clippy-app"
+primary_region = "lax"
+kill_signal = "SIGTERM"
+kill_timeout = 5
+
+[build]
+  builder = "hexpm/elixir:1.15.7-erlang-26.1.2-debian-bookworm-20231009"
+
+[env]
+  PHX_HOST = "clippy-app.fly.dev"
+  PORT = "8080"
+  POOL_SIZE = "20"
+  MIX_ENV = "prod"
+
+[experimental]
+  auto_rollback = true
+
+[[services]]
+  http_checks = []
+  internal_port = 8080
+  protocol = "tcp"
+  script_checks = []
+
+  [services.concurrency]
+    hard_limit = 1000
+    soft_limit = 900
+    type = "connections"
+
+  [[services.ports]]
+    force_https = true
+    handlers = ["http"]
+    port = 80
+
+  [[services.ports]]
+    handlers = ["tls", "http"]
+    port = 443
+
+  [[services.tcp_checks]]
+    grace_period = "1s"
+    interval = "15s"
+    restart_limit = 0
+    timeout = "2s"
+
+  [[services.http_checks]]
+    interval = "30s"
+    grace_period = "5s"
+    method = "GET"
+    path = "/health"
+    protocol = "http"
+    timeout = "2s"
+    tls_skip_verify = false
+
+# Scale memory/CPU as needed
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+```
+
+#### 5. Deploy the Application
+```bash
+# Initial deployment
+fly deploy
+
+# Monitor deployment
+fly logs
+
+# Open application in browser
+fly open
+
+# Check application status
+fly status
+```
+
+### Database Management
+
+#### Connect to Production Database
+```bash
+# Direct connection to PostgreSQL
+fly postgres connect -a clippy-db
+
+# Run migrations on production
+fly ssh console -a clippy-app
+/app/bin/clippy eval "Clippy.Release.migrate"
+```
+
+#### Database Backups
+```bash
+# Create a manual backup
+fly postgres backup create -a clippy-db
+
+# List available backups
+fly postgres backup list -a clippy-db
+
+# Restore from backup (if needed)
+fly postgres backup restore <backup-id> -a clippy-db
+```
+
+### Scaling and Performance
+
+#### Horizontal Scaling
+```bash
+# Scale to multiple instances
+fly scale count 3 --app clippy-app
+
+# Check current scale
+fly scale show --app clippy-app
+```
+
+#### Vertical Scaling
+```bash
+# Upgrade VM size
+fly scale vm shared-cpu-2x --memory 1024 --app clippy-app
+
+# Scale PostgreSQL
+fly scale vm shared-cpu-2x --memory 2048 -a clippy-db
+```
+
+#### Add Regions (Multi-region deployment)
+```bash
+# Add additional regions
+fly regions add ord sjc --app clippy-app
+
+# List current regions
+fly regions list --app clippy-app
+
+# Setup PostgreSQL read replicas
+fly postgres replicas create --region ord -a clippy-db
+```
+
+### Monitoring and Debugging
+
+#### View Logs
+```bash
+# Stream live logs
+fly logs --app clippy-app
+
+# View recent logs
+fly logs --app clippy-app --recent
+
+# Filter logs
+fly logs --app clippy-app | grep ERROR
+```
+
+#### SSH into Running Instance
+```bash
+# Connect to running instance
+fly ssh console --app clippy-app
+
+# Run Elixir remote console
+fly ssh console --app clippy-app
+/app/bin/clippy remote
+```
+
+#### Health Checks
+```bash
+# Check app status
+fly status --app clippy-app
+
+# Monitor metrics
+fly monitor --app clippy-app
+```
+
+### CI/CD with GitHub Actions
+
+#### Create GitHub Action for Auto-deployment
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy to Fly.io
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/clippy/**'
+      - '.github/workflows/deploy.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Fly.io CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      
+      - name: Deploy to Fly.io
+        run: |
+          cd apps/clippy
+          flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+```
+
+#### Setup GitHub Secrets
+```bash
+# Get your Fly.io API token
+fly auth token
+
+# Add to GitHub repository secrets:
+# Settings > Secrets > Actions > New repository secret
+# Name: FLY_API_TOKEN
+# Value: [paste token from above]
+```
+
+### Custom Domain Setup
+
+```bash
+# Add custom domain
+fly certs add clippy.yourdomain.com --app clippy-app
+
+# Get DNS records to configure
+fly certs show clippy.yourdomain.com --app clippy-app
+
+# Verify certificate
+fly certs check clippy.yourdomain.com --app clippy-app
+```
+
+### Production Checklist
+
+- [ ] Set all required environment variables and secrets
+- [ ] Configure production database with appropriate size
+- [ ] Setup database backups and retention policy
+- [ ] Configure health checks in fly.toml
+- [ ] Setup monitoring and alerting
+- [ ] Configure auto-scaling rules
+- [ ] Setup CI/CD pipeline
+- [ ] Configure custom domain and SSL
+- [ ] Test database migrations on staging first
+- [ ] Configure rate limiting and DDoS protection
+- [ ] Setup log aggregation (if needed)
+- [ ] Configure CDN for static assets
+
+## 🎩 MVP Milestones
 
 ### Phase 1: Core Infrastructure (Week 1-2)
 - [ ] Chrome extension with Vue 3 setup
